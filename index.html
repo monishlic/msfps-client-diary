@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#e0f2fe">
+<meta name="theme-color" content="#f5f5f7">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MSFPS Diary">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230071e3'/%3E%3Ctext x='50' y='70' font-size='62' fill='white' text-anchor='middle' font-family='Arial' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E">
 <title>MSFPS Client Diary</title>
 <style>
   :root{
@@ -315,6 +321,7 @@
     <button class="navitem" data-v="directory" onclick="showView('directory')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Members</span></button>
     <button class="navitem" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span><span class="navcnt" id="famCnt"></span></button>
     <button class="navitem" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
+    <button class="navitem" data-v="settings" onclick="showView('settings')" style="display:none"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
   </nav>
   <div class="sidefoot">
     <button class="btn btn-soft btn-block" onclick="exportExcel()"><svg class="ic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Excel</button>
@@ -327,6 +334,7 @@
   <button class="bnav" data-v="directory" onclick="showView('directory')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Members</span></button>
   <button class="bnav" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span></button>
   <button class="bnav" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
+  <button class="bnav" data-v="settings" onclick="showView('settings')" style="display:none"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
 </div>
 <div class="topbar"><div class="pagetitle" id="pageTitle">Dashboard</div><div style="flex:1"></div>
   <button class="btn btn-soft btn-sm mob-only" onclick="exportExcel()"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></div>
@@ -395,6 +403,11 @@
       <div id="actList"></div>
     </div>
   </section>
+
+  <!-- SETTINGS (admin) -->
+  <section class="view" id="view-settings">
+    <div class="panel" id="settingsPanel"></div>
+  </section>
 </main>
 
 <button class="fab" onclick="openAdd()" title="Add member"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -441,6 +454,7 @@ const FB_CONFIG={apiKey:"AIzaSyCQEaS2MM-cwb8qjHXMB1cMO-M76nOw37w",authDomain:"ms
 const TEAM=[{name:"Monish",email:"monish@msfps.in"},{name:"Sarvesh",email:"sarvesh@msfps.in"},{name:"Gaurav",email:"gaurav@msfps.in"},{name:"Kapil",email:"kapil@msfps.in"},{name:"Aditya",email:"aditya@msfps.in"}];
 const CLOUD=!!(FB_CONFIG&&FB_CONFIG.apiKey);
 let fbApp,fbAuth,fdb,me=null,cloudAct=[];
+let isAdmin=false, accessDoc={emails:[],users:[],admins:[]}, pendingInvite=null, inviteName=null;
 const RECENT_KEY='msfps_recent';
 
 /* ---------- IndexedDB ---------- */
@@ -535,12 +549,13 @@ function showView(v){
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('show'));
   document.getElementById('view-'+v).classList.add('show');
   document.querySelectorAll('[data-v]').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
-  const titles={dashboard:'Dashboard',directory:'Members',families:'Groups',activity:'Activity'};
+  const titles={dashboard:'Dashboard',directory:'Members',families:'Groups',activity:'Activity',settings:'Settings'};
   document.getElementById('pageTitle').textContent=titles[v]||'';
   if(v==='dashboard')renderDashboard();
   if(v==='families')renderFamilies();
   if(v==='activity')renderActivity();
   if(v==='directory')render();
+  if(v==='settings')renderSettings();
   window.scrollTo(0,0);
 }
 
@@ -948,6 +963,9 @@ function toggleSync(){document.getElementById('syncPanel').classList.toggle('sho
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load')); document.head.appendChild(s);});}
 async function initCloud(){
   showAuthGate('loading');
+  if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
+  // Invite links: ...#u=email&k=passkey&n=name  → auto sign-in, then clear the link
+  try{ const h=new URLSearchParams((location.hash||'').replace(/^#/,'')); if(h.get('u')&&h.get('k')){ pendingInvite={email:decodeURIComponent(h.get('u')).toLowerCase(),pass:decodeURIComponent(h.get('k')),name:h.get('n')?decodeURIComponent(h.get('n')):''}; history.replaceState(null,'',location.pathname+location.search); } }catch(e){}
   try{
     const base='https://www.gstatic.com/firebasejs/10.12.5/';
     await loadScript(base+'firebase-app-compat.js');
@@ -958,13 +976,83 @@ async function initCloud(){
     fbApp=firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fdb=firebase.firestore();
     try{ await fdb.enablePersistence({synchronizeTabs:true}); }catch(e){}
-    // cloud mode: relabel the sync panel (no manual toggle)
     const tg=document.querySelector('.syncpanel .toggle'); if(tg)tg.style.display='none';
     const hn=document.querySelector('.syncpanel .hint'); if(hn)hn.textContent='Your team shares one live copy. Changes sync automatically and are never lost — they save on your device first and upload when online.';
-    buildLoginOptions();
-    fbAuth.onAuthStateChanged(u=>{ if(u){ onSignedIn(u); } else { showAuthGate('login'); } });
+    fbAuth.onAuthStateChanged(u=>{ if(u){ onSignedIn(u); } else if(pendingInvite){ const p=pendingInvite; pendingInvite=null; autoInvite(p); } else { showAuthGate('login'); } });
     window.addEventListener('online',updateCloudStatus); window.addEventListener('offline',updateCloudStatus);
   }catch(e){ showAuthError('Setup error: '+(e.message||e)); }
+}
+async function autoInvite(p){
+  showAuthGate('loading'); inviteName=p.name||'';
+  try{ await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); await fbAuth.signInWithEmailAndPassword(p.email,p.pass); }
+  catch(e){ inviteName=null; showAuthGate('login'); const ni=document.getElementById('authName'); if(ni&&p.name)ni.value=p.name; showAuthError('Invite sign-in failed — type your passkey to continue.'); }
+}
+function getSecApp(){ return (firebase.apps||[]).find(a=>a.name==='sec')||firebase.initializeApp(FB_CONFIG,'sec'); }
+async function loadAccess(){
+  isAdmin=(me.email==='monish@msfps.in');
+  try{
+    const d=await fdb.doc('meta/access').get();
+    if(d.exists){ accessDoc=d.data()||accessDoc; }
+    else if(isAdmin){ accessDoc={emails:TEAM.map(t=>t.email),users:TEAM.map(t=>({name:t.name,email:t.email})),admins:['monish@msfps.in']}; await fdb.doc('meta/access').set(accessDoc); }
+    isAdmin = isAdmin || ((accessDoc.admins||[]).includes(me.email));
+    const um=(accessDoc.users||[]).find(x=>x.email===me.email); if(um&&um.name&&!inviteName)me.name=um.name;
+  }catch(e){ /* non-admins can't read the access doc — that's fine */ }
+  inviteName=null;
+}
+function updateAdminUI(){ document.querySelectorAll('[data-v="settings"]').forEach(el=>el.style.display=isAdmin?'':'none'); }
+/* ===== Admin: users, invites ===== */
+function renderSettings(){
+  const p=document.getElementById('settingsPanel'); if(!p)return;
+  if(!isAdmin){ p.innerHTML=`<div class="empty"><div class="big" style="color:var(--muted)">${icon('shield',34)}</div>Settings are available to the admin only.</div>`; return; }
+  const users=(accessDoc.users||[]), admins=(accessDoc.admins||[]);
+  p.innerHTML=`
+    <h3><span style="color:var(--brand2)">${icon('users',16)}</span> Team members <span class="pill">${users.length}</span></h3>
+    <div class="famlist" style="margin:6px 0 20px">${users.map(u=>`<div class="famitem" style="justify-content:space-between;cursor:default">
+      <div style="min-width:0"><b>${esc(u.name||u.email)}</b>${admins.includes(u.email)?' <span class="smartchip">admin</span>':''}<div class="dupsub">${esc(u.email)}</div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0">${u.key?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}</div>
+    </div>`).join('')}</div>
+    <h3><span style="color:var(--brand2)">${icon('plus',16)}</span> Add a team member</h3>
+    <div class="field"><label>Name</label><input id="su_name" class="authinput" placeholder="e.g. Riya" oninput="suDeriveEmail()"></div>
+    <div class="field"><label>Login email</label><input id="su_email" class="authinput" placeholder="riya@msfps.in" oninput="this.dataset.touched=1"></div>
+    <div class="field"><label>Passkey (min 6 characters)</label><input id="su_pass" class="authinput" placeholder="Set their passkey"></div>
+    <div class="autherr" id="su_err" style="display:none"></div>
+    <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
+    <div id="su_invite" style="margin-top:14px"></div>
+    <div class="hint" style="margin-top:14px">Invite links contain the person's passkey — share them privately (WhatsApp DM), not in a public group. Anyone with a link can sign in as that person.</div>`;
+}
+function suDeriveEmail(){ const n=(document.getElementById('su_name').value||'').trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,''); const e=document.getElementById('su_email'); if(e&&!e.dataset.touched)e.value=n?n+'@msfps.in':''; }
+async function adminAddUser(){
+  const err=m=>{const e=document.getElementById('su_err');e.textContent=m;e.style.display='block';};
+  const name=(document.getElementById('su_name').value||'').trim();
+  const email=(document.getElementById('su_email').value||'').trim().toLowerCase();
+  const pass=(document.getElementById('su_pass').value||'');
+  if(!name)return err('Enter a name'); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return err('Enter a valid login email'); if(pass.length<6)return err('Passkey must be at least 6 characters');
+  const btn=document.getElementById('suAddBtn'); btn.disabled=true; btn.textContent='Adding…';
+  try{
+    const sec=getSecApp();
+    try{ await sec.auth().createUserWithEmailAndPassword(email,pass); }
+    catch(e){ if((e.code||'')!=='auth/email-already-in-use') throw e; }
+    try{ await sec.auth().signOut(); }catch(e){}
+    const users=(accessDoc.users||[]).filter(u=>u.email!==email); users.push({name,email,key:pass});
+    const emails=[...new Set([...(accessDoc.emails||[]),email])];
+    accessDoc=Object.assign({},accessDoc,{users,emails,admins:accessDoc.admins||['monish@msfps.in']});
+    await fdb.doc('meta/access').set(accessDoc);
+    renderSettings();
+    const link=inviteLinkFor(email);
+    document.getElementById('su_invite').innerHTML=`<div class="importbanner"><span>Invite ready for <b>${esc(name)}</b>.</span> <button class="btn btn-primary btn-sm" onclick="copyInvite('${esc(email)}')">${icon('copy',14)} Copy invite link</button></div>`;
+    toast('Member added ✓','ok');
+  }catch(e){ err('Could not add: '+(e.code||e.message)); const b=document.getElementById('suAddBtn'); if(b){b.disabled=false;b.textContent='Add member & make invite';} }
+}
+function inviteLinkFor(email){ const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u||!u.key)return null; return location.origin+location.pathname+'#u='+encodeURIComponent(email)+'&k='+encodeURIComponent(u.key)+'&n='+encodeURIComponent(u.name||''); }
+function copyInvite(email){ const link=inviteLinkFor(email); if(!link){toast('No stored passkey — re-add this member to make an invite','warn');return;} copyText(link); toast('Invite link copied — share privately','ok'); }
+async function removeUser(email){
+  const ok=await askConfirm({title:'Remove member',msg:`Remove <b>${esc(email)}</b>'s access? They will no longer be able to sign in.`,danger:true,okLabel:'Remove access'});
+  if(!ok)return;
+  const users=(accessDoc.users||[]).filter(u=>u.email!==email);
+  const emails=(accessDoc.emails||[]).filter(e=>e!==email);
+  accessDoc=Object.assign({},accessDoc,{users,emails});
+  try{ await fdb.doc('meta/access').set(accessDoc); renderSettings(); toast('Member removed','ok'); }
+  catch(e){ toast('Could not remove: '+(e.code||e.message),'warn'); }
 }
 function buildLoginOptions(){ /* users now type their name — no dropdown */ }
 async function doLogin(){
@@ -984,11 +1072,13 @@ async function doLogin(){
     btn.disabled=false; btn.textContent='Sign in';
   }
 }
-function onSignedIn(u){
+async function onSignedIn(u){
   const raw=(u.email||'').split('@')[0]; const cap=raw?raw[0].toUpperCase()+raw.slice(1):raw;
-  me={email:u.email,name:(TEAM.find(t=>t.email===u.email)||{}).name||cap};
+  me={email:u.email,name:inviteName||((TEAM.find(t=>t.email===u.email)||{}).name)||cap};
   hideAuthGate();
   const lo=document.getElementById('logoutWrap'); if(lo){lo.style.display='';lo.querySelector('span').textContent='Sign out ('+me.name+')';}
+  await loadAccess();
+  updateAdminUI();
   subscribeCloud();
 }
 function subscribeCloud(){
