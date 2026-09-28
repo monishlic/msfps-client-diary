@@ -264,6 +264,11 @@
     .rings{gap:8px}
     .recentstrip,.tabrow{max-width:100%}
     img,svg,canvas{max-width:100%}
+    /* top-bar action buttons: btn-soft is styled for the DARK sidebar (near-white icon),
+       so on the light top bar it was invisible — restyle for light background here */
+    .topbar .btn.btn-soft{background:var(--chip);color:var(--ink);border:1px solid var(--line);width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}
+    .topbar .btn.btn-soft .ic-svg{width:19px;height:19px}
+    .topbar #mobLogout{color:var(--danger)}
   }
   /* premium typography */
   h2,.pagetitle,.fn,.brandtx{letter-spacing:-.02em}
