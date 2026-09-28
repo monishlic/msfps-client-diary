@@ -1,9 +1,9 @@
 /* MSFPS Diary service worker.
    Network-first for the app page (so new versions always load when online),
    cache fallback for offline. Firebase requests always go to the network. */
-const C='msfps-diary-v3';
+const C='msfps-diary-v4';
 self.addEventListener('install',e=>{
-  e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.webmanifest']).catch(()=>{})));
+  e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png']).catch(()=>{})));
   self.skipWaiting();
 });
 self.addEventListener('activate',e=>{
