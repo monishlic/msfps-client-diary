@@ -454,7 +454,7 @@ const FB_CONFIG={apiKey:"AIzaSyCQEaS2MM-cwb8qjHXMB1cMO-M76nOw37w",authDomain:"ms
 const TEAM=[{name:"Monish",email:"monish@msfps.in"},{name:"Sarvesh",email:"sarvesh@msfps.in"},{name:"Gaurav",email:"gaurav@msfps.in"},{name:"Kapil",email:"kapil@msfps.in"},{name:"Aditya",email:"aditya@msfps.in"}];
 const CLOUD=!!(FB_CONFIG&&FB_CONFIG.apiKey);
 let fbApp,fbAuth,fdb,me=null,cloudAct=[];
-let isAdmin=false, accessDoc={emails:[],users:[],admins:[]}, pendingInvite=null, inviteName=null;
+let isAdmin=false, accessDoc={emails:[],users:[],admins:[]}, pendingInvite=null, inviteName=null, prefillName='';
 const RECENT_KEY='msfps_recent';
 
 /* ---------- IndexedDB ---------- */
@@ -965,7 +965,7 @@ async function initCloud(){
   showAuthGate('loading');
   if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
   // Invite links: ...#u=email&k=passkey&n=name  → auto sign-in, then clear the link
-  try{ const h=new URLSearchParams((location.hash||'').replace(/^#/,'')); if(h.get('u')&&h.get('k')){ pendingInvite={email:decodeURIComponent(h.get('u')).toLowerCase(),pass:decodeURIComponent(h.get('k')),name:h.get('n')?decodeURIComponent(h.get('n')):''}; history.replaceState(null,'',location.pathname+location.search); } }catch(e){}
+  try{ const h=new URLSearchParams((location.hash||'').replace(/^#/,'')); if(h.get('u')&&h.get('k')){ pendingInvite={email:decodeURIComponent(h.get('u')).toLowerCase(),pass:decodeURIComponent(h.get('k')),name:h.get('n')?decodeURIComponent(h.get('n')):''}; history.replaceState(null,'',location.pathname+location.search); } else if(h.get('u')){ const em=decodeURIComponent(h.get('u')).toLowerCase(); prefillName=h.get('n')?decodeURIComponent(h.get('n')):em.split('@')[0]; history.replaceState(null,'',location.pathname+location.search); } }catch(e){}
   try{
     const base='https://www.gstatic.com/firebasejs/10.12.5/';
     await loadScript(base+'firebase-app-compat.js');
@@ -978,7 +978,17 @@ async function initCloud(){
     try{ await fdb.enablePersistence({synchronizeTabs:true}); }catch(e){}
     const tg=document.querySelector('.syncpanel .toggle'); if(tg)tg.style.display='none';
     const hn=document.querySelector('.syncpanel .hint'); if(hn)hn.textContent='Your team shares one live copy. Changes sync automatically and are never lost — they save on your device first and upload when online.';
-    fbAuth.onAuthStateChanged(u=>{ if(u){ onSignedIn(u); } else if(pendingInvite){ const p=pendingInvite; pendingInvite=null; autoInvite(p); } else { showAuthGate('login'); } });
+    let invBusy=false;
+    fbAuth.onAuthStateChanged(async u=>{
+      if(pendingInvite && !invBusy){
+        const p=pendingInvite;
+        if(u && (u.email||'').toLowerCase()===p.email){ pendingInvite=null; onSignedIn(u); return; } // already the invited person
+        invBusy=true; try{ if(u) await fbAuth.signOut(); }catch(e){} pendingInvite=null; invBusy=false;
+        autoInvite(p); return;
+      }
+      if(invBusy) return; // ignore intermediate auth events during an invite switch
+      if(u){ onSignedIn(u); } else { showAuthGate('login'); }
+    });
     window.addEventListener('online',updateCloudStatus); window.addEventListener('offline',updateCloudStatus);
   }catch(e){ showAuthError('Setup error: '+(e.message||e)); }
 }
@@ -1009,7 +1019,7 @@ function renderSettings(){
     <h3><span style="color:var(--brand2)">${icon('users',16)}</span> Team members <span class="pill">${users.length}</span></h3>
     <div class="famlist" style="margin:6px 0 20px">${users.map(u=>`<div class="famitem" style="justify-content:space-between;cursor:default">
       <div style="min-width:0"><b>${esc(u.name||u.email)}</b>${admins.includes(u.email)?' <span class="smartchip">admin</span>':''}<div class="dupsub">${esc(u.email)}</div></div>
-      <div style="display:flex;gap:6px;flex-shrink:0">${u.key?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}</div>
+      <div style="display:flex;gap:6px;flex-shrink:0">${u.email!==(me&&me.email)?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}</div>
     </div>`).join('')}</div>
     <h3><span style="color:var(--brand2)">${icon('plus',16)}</span> Add a team member</h3>
     <div class="field"><label>Name</label><input id="su_name" class="authinput" placeholder="e.g. Riya" oninput="suDeriveEmail()"></div>
@@ -1018,7 +1028,7 @@ function renderSettings(){
     <div class="autherr" id="su_err" style="display:none"></div>
     <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
     <div id="su_invite" style="margin-top:14px"></div>
-    <div class="hint" style="margin-top:14px">Invite links contain the person's passkey — share them privately (WhatsApp DM), not in a public group. Anyone with a link can sign in as that person.</div>`;
+    <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that opens the app on their device. For members you add here, the link also signs them in automatically — share those privately (WhatsApp DM), never in a group, since anyone with the link can sign in as them. For the original team, the link fills in their name and they type their own passkey once.</div>`;
 }
 function suDeriveEmail(){ const n=(document.getElementById('su_name').value||'').trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,''); const e=document.getElementById('su_email'); if(e&&!e.dataset.touched)e.value=n?n+'@msfps.in':''; }
 async function adminAddUser(){
@@ -1043,8 +1053,8 @@ async function adminAddUser(){
     toast('Member added ✓','ok');
   }catch(e){ err('Could not add: '+(e.code||e.message)); const b=document.getElementById('suAddBtn'); if(b){b.disabled=false;b.textContent='Add member & make invite';} }
 }
-function inviteLinkFor(email){ const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u||!u.key)return null; return location.origin+location.pathname+'#u='+encodeURIComponent(email)+'&k='+encodeURIComponent(u.key)+'&n='+encodeURIComponent(u.name||''); }
-function copyInvite(email){ const link=inviteLinkFor(email); if(!link){toast('No stored passkey — re-add this member to make an invite','warn');return;} copyText(link); toast('Invite link copied — share privately','ok'); }
+function inviteLinkFor(email){ const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u)return null; let s='#u='+encodeURIComponent(email)+'&n='+encodeURIComponent(u.name||''); if(u.key)s+='&k='+encodeURIComponent(u.key); return location.origin+location.pathname+s; }
+function copyInvite(email){ const link=inviteLinkFor(email); if(!link){toast('Could not build an invite link','warn');return;} const u=(accessDoc.users||[]).find(x=>x.email===email); copyText(link); toast(u&&u.key?'Invite link copied — signs them in automatically. Share privately.':'Invite link copied — opens the app with their name filled in; they enter their passkey once.','ok'); }
 async function removeUser(email){
   const ok=await askConfirm({title:'Remove member',msg:`Remove <b>${esc(email)}</b>'s access? They will no longer be able to sign in.`,danger:true,okLabel:'Remove access'});
   if(!ok)return;
@@ -1130,6 +1140,7 @@ function showAuthGate(mode){
   const l=document.getElementById('authLoading'), f=document.getElementById('authForm');
   if(l)l.style.display=mode==='loading'?'block':'none';
   if(f)f.style.display=mode==='login'?'block':'none';
+  if(mode==='login'&&prefillName){ const ni=document.getElementById('authName'); if(ni&&!ni.value){ ni.value=prefillName; setTimeout(()=>{const pw=document.getElementById('authPass'); if(pw)pw.focus();},60); } }
   const e=document.getElementById('authErr'); if(e&&mode==='login')e.style.display='none';
 }
 function hideAuthGate(){ const g=document.getElementById('authgate'); if(g)g.style.display='none'; }
