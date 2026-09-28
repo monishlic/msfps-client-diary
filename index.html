@@ -157,6 +157,8 @@
   .actitem .ai{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px}
   .ai.create{background:#e3f5ec;color:#0f9d63}.ai.edit{background:#e5eefb;color:#3b6fb5}.ai.del{background:#fde8e8;color:#dc2626}
   .actitem .at{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  .acttime{font-size:11px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+  .actdetail{font-size:12px;color:var(--ink);background:var(--chip);border-radius:8px;padding:5px 9px;margin-top:5px;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.45}
   /* modal */
   .overlay{position:fixed;inset:0;background:rgba(20,45,85,.4);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
   .overlay.show{display:flex}
@@ -429,6 +431,11 @@
   <section class="view" id="view-activity">
     <div class="panel">
       <h3><span style="color:var(--brand2)"><svg class="ic-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span> Activity log <span class="pill" id="actCnt">0</span></h3>
+      <div class="searchbox" style="margin:2px 0 12px">
+        <span class="si"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <input id="actSearch" type="text" placeholder="Search activity — member, action, who, date…" autocomplete="off" oninput="renderActivity()">
+        <button class="clr" onclick="document.getElementById('actSearch').value='';renderActivity()">×</button>
+      </div>
       <div id="actList"></div>
     </div>
   </section>
@@ -463,6 +470,7 @@
       <input id="authPass" class="authinput" type="password" placeholder="Enter your passkey" onkeydown="if(event.key==='Enter')doLogin()">
       <div class="autherr" id="authErr" style="display:none"></div>
       <button class="btn btn-primary" id="authBtn" onclick="doLogin()" style="width:100%;justify-content:center;margin-top:14px">Sign in</button>
+      <button type="button" class="linkbtn" onclick="forgotKey()" style="display:block;margin:12px auto 0;font-size:12.5px">Forgot passkey?</button>
       <p class="authsub" style="text-align:center;margin-top:12px;font-size:11.5px">Only approved team members can sign in.</p>
     </div>
   </div>
@@ -561,6 +569,7 @@ const ICONS={
  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
  copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+ back:'<polyline points="15 18 9 12 15 6"/>',
  alert:'<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16"/>',
  chev:'<polyline points="9 18 15 12 9 6"/>',
  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -760,7 +769,7 @@ function renderDashboard(){
       <div class="avatar av" style="background:${avatarColor(m.group_code)};font-size:${avFont(m.group_code,11)}px;letter-spacing:0">${esc(m.group_code)}</div>${esc(m.name.split(' ')[0])} ${esc((m.name.split(' ').slice(-1)[0]||''))}</div>`).join('')}</div>`
       :`<div class="sub2" style="color:var(--muted)">Members you open will appear here.</div>`);
   // recently edited
-  actAll().then(a=>{const recent=a.sort((x,y)=>y.ts-x.ts).slice(0,6);
+  actAll().then(a=>{const recent=a.filter(e=>e.membid&&(e.action==='create'||e.action==='edit'||e.action==='move')).sort((x,y)=>y.ts-x.ts).slice(0,6);
     document.getElementById('editedPanel').innerHTML=`<h3><span style="color:var(--brand2)">${icon('edit',16)}</span> Recently edited</h3>`+
       (recent.length?recent.map(e=>`<div class="li" onclick="openDetail('${e.membid}')">
         <div class="ai ${e.action}" style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center">${icon(e.action==='create'?'plus':'edit',15)}</div>
@@ -819,17 +828,30 @@ function openFamily(code){
 function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);
   if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';
   return Math.floor(s/86400)+'d ago';}
+function fmtDateTime(ts){try{return new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});}catch(e){return new Date(ts).toLocaleString();}}
+function _short(s){s=(s==null?'':(''+s)).trim();return s.length>34?s.slice(0,34)+'…':s;}
+function diffMember(b,a){const out=[];
+  const F=[['name','Name'],['group_code','Group code'],['group_name','Group name'],['mobile','Mobile'],['alt_mobile','Alternate'],['resi_address','Residence'],['offi_address','Office']];
+  F.forEach(([k,label])=>{const ov=(b[k]==null?'':(''+b[k])).trim(),nv=(a[k]==null?'':(''+a[k])).trim();if(ov!==nv)out.push(label+': "'+_short(ov||'—')+'" → "'+_short(nv||'—')+'"');});
+  const ob=(b.dob||'').trim(),nb=(a.dob||'').trim();if(ob!==nb)out.push('DOB: '+(ob?fmtDate(ob):'—')+' → '+(nb?fmtDate(nb):'—'));
+  const oe=((b.emails||[]).join(', ')).trim(),ne=((a.emails||[]).join(', ')).trim();if(oe!==ne)out.push('Email: "'+_short(oe||'—')+'" → "'+_short(ne||'—')+'"');
+  return out.join('; ');}
 function renderActivity(){
   actAll().then(a=>{
     a.sort((x,y)=>y.ts-x.ts);
-    document.getElementById('actCnt').textContent=a.length;
-    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'}};
-    document.getElementById('actList').innerHTML=a.length?a.map(e=>{const v=AV[e.action]||{i:'edit',c:'edit',t:e.action};return `<div class="actitem">
+    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'}};
+    const q=norm((document.getElementById('actSearch')||{}).value||'').trim();
+    const terms=q.split(/\s+/).filter(Boolean);
+    const list=terms.length?a.filter(e=>{const v=AV[e.action]||{t:e.action};return terms.every(w=>norm([e.name,v.t,e.by,e.detail,e.action,fmtDateTime(e.ts)].join(' ')).includes(w));}):a;
+    document.getElementById('actCnt').textContent=list.length;
+    document.getElementById('actList').innerHTML=list.length?list.map(e=>{const v=AV[e.action]||{i:'edit',c:'edit',t:e.action};return `<div class="actitem">
       <div class="ai ${v.c}">${icon(v.i,16)}</div>
-      <div style="flex:1">${e.membid?`<div style="font-weight:600;cursor:pointer" onclick="openDetail('${e.membid}')">${esc(e.name||'')}</div>`:`<div style="font-weight:600">${esc(e.name||'')}</div>`}
-        <div class="sub2">${esc(v.t)}${e.detail?' · '+esc(e.detail):''} · by ${esc(e.by||'You')}</div></div>
+      <div style="flex:1;min-width:0">${e.membid?`<div style="font-weight:600;cursor:pointer" onclick="openDetail('${e.membid}')">${esc(e.name||'')}</div>`:`<div style="font-weight:600">${esc(e.name||'')}</div>`}
+        <div class="sub2">${esc(v.t)} · by ${esc(e.by||'You')}</div>
+        ${e.detail?`<div class="actdetail">${esc(e.detail)}</div>`:''}
+        <div class="acttime">${fmtDateTime(e.ts)}</div></div>
       <div class="at">${timeAgo(e.ts)}</div></div>`;}).join('')
-      :`<div class="empty"><div class="big" style="color:var(--muted)">${icon('clock',36)}</div>No changes yet. Add or edit a member and it will be logged here.</div>`;
+      :(a.length?`<div class="empty"><div class="big" style="color:var(--muted)">${icon('search',34)}</div>No activity matches your search.</div>`:`<div class="empty"><div class="big" style="color:var(--muted)">${icon('clock',36)}</div>No changes yet. Add or edit a member and it will be logged here.</div>`);
   });
 }
 
@@ -844,9 +866,10 @@ function openDetail(id){
   const emailHtml=(m.emails&&m.emails.length)?m.emails.map(e=>`<div class="val vcopy"><span style="color:var(--brand2)">${icon('mail',14)}</span><a href="mailto:${esc(e)}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(e)}</a>${cbtn(e)}</div>`).join(''):'<div class="val" style="color:var(--muted)">—</div>';
   const sheet=document.getElementById('sheet');
   sheet.innerHTML=`<div class="shead">
+    <button class="xbtn" onclick="openFamily('${m.group_code}')" title="Back to ${esc(m.group_code)} group" aria-label="Back to group">${icon('back',18)}</button>
     <div class="avatar" style="background:${avatarColor(m.group_code)};font-size:${avFont(m.group_code,15)}px;letter-spacing:0">${esc(m.group_code)}</div>
     <div style="flex:1"><h2 style="display:flex;align-items:center;gap:8px">${esc(m.name)} ${cbtn(m.name)}</h2><div class="sub">${esc(m.group_name)} group · <span class="gcode">${esc(m.group_code)}</span>${m.age!=null?' · '+m.age+' yrs':''}</div></div>
-    <button class="xbtn" onclick="closeSheet()">×</button></div>
+    <button class="xbtn" onclick="closeSheet()" aria-label="Close">×</button></div>
     <div class="sbody">
       ${m.mobile?`<div class="callrow"><a href="tel:${firstPhone(m.mobile)}">${icon('phone',16)} Call</a><a href="https://wa.me/91${firstPhone(m.mobile)}" target="_blank">${icon('message',16)} WhatsApp</a>${m.emails&&m.emails.length?`<a href="mailto:${esc(m.emails[0])}">${icon('mail',16)} Email</a>`:''}</div>`:''}
       <div class="rowactions">
@@ -954,22 +977,23 @@ async function saveMember(id){
   }
   const emails=val('f_em').split(',').map(e=>e.trim()).filter(Boolean);const dob=val('f_dob');
   let age=null;if(dob){const b=new Date(dob),t=new Date();age=t.getFullYear()-b.getFullYear()-((t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))?1:0);}
-  let m,isNew=!id,before=null;
-  if(id){m=MEMBERS.find(x=>x.membid===id);before={name:m.name,group_code:m.group_code,group_name:m.group_name};}else{m={membid:'NEW-'+Date.now()};MEMBERS.push(m);}
+  let m,isNew=!id,before=null,beforeFull=null;
+  if(id){m=MEMBERS.find(x=>x.membid===id);before={name:m.name,group_code:m.group_code,group_name:m.group_name};beforeFull={name:m.name,group_code:m.group_code,group_name:m.group_name,dob:m.dob,mobile:m.mobile,alt_mobile:m.alt_mobile,emails:(m.emails||[]).slice(),resi_address:m.resi_address,offi_address:m.offi_address};}else{m={membid:'NEW-'+Date.now()};MEMBERS.push(m);}
   Object.assign(m,{group_code:gc,group_name:val('f_gn').trim()||name,name,dob,age,mobile:val('f_mob').trim(),alt_mobile:val('f_alt').trim(),emails,resi_address:val('f_resi').trim(),offi_address:val('f_offi').trim(),_updated:new Date().toISOString()});
+  const actDetail=isNew?('New record in '+m.group_code+' · '+(m.group_name||'')):(diffMember(beforeFull,m)||'Re-saved (no field changes)');
   if(isNew){addHistory(m,'created',`Added to ${m.group_code} (${m.group_name})`);}
   else if(before){ if(before.name!==m.name)addHistory(m,'renamed',`${before.name} → ${m.name}`); if(before.group_code!==m.group_code)addHistory(m,'moved',`From ${before.group_code} to ${m.group_code}`); }
   if(CLOUD){
     document.getElementById('famCnt').textContent=new Set(MEMBERS.map(x=>x.group_code)).size;
     closeSheet();
     if(view==='directory')render();else if(view==='families')renderFamilies();else renderDashboard();
-    try{ await cloudSave(m,isNew); toast(navigator.onLine?'Saved ✓ and synced':'Saved ✓ — will sync when online','ok'); }
+    try{ await cloudSave(m,isNew,actDetail); toast(navigator.onLine?'Saved ✓ and synced':'Saved ✓ — will sync when online','ok'); }
     catch(e){ toast('Saved on device — will sync when online','ok'); }
     return;
   }
   await putOne(m);
   await queuePush({membid:m.membid,action:isNew?'create':'update',at:Date.now()});
-  await actPush({ts:Date.now(),action:isNew?'create':'edit',membid:m.membid,name:m.name,by:'You'});
+  await actPush({ts:Date.now(),action:isNew?'create':'edit',membid:m.membid,name:m.name,detail:actDetail,by:byName()});
   document.getElementById('famCnt').textContent=new Set(MEMBERS.map(x=>x.group_code)).size;
   refreshQueueUI();closeSheet();
   if(view==='directory')render();else if(view==='families')renderFamilies();else renderDashboard();
@@ -1049,7 +1073,12 @@ function renderSettings(){
     <h3><span style="color:var(--brand2)">${icon('users',16)}</span> Team members <span class="pill">${users.length}</span></h3>
     <div class="famlist" style="margin:6px 0 20px">${users.map(u=>`<div class="famitem" style="justify-content:space-between;cursor:default">
       <div style="min-width:0"><b>${esc(u.name||u.email)}</b>${admins.includes(u.email)?' <span class="smartchip">admin</span>':''}<div class="dupsub">${esc(u.email)}</div></div>
-      <div style="display:flex;gap:6px;flex-shrink:0">${u.email!==(me&&me.email)?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}</div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="adminResetKey('${esc(u.email)}')" title="Email a passkey reset link">${icon('mail',14)} Reset</button>
+        ${u.email!==(me&&me.email)?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}
+        ${u.email!=='monish@msfps.in'?`<button class="btn btn-ghost btn-sm" onclick="adminSetRole('${esc(u.email)}',${admins.includes(u.email)?'false':'true'})">${admins.includes(u.email)?'Demote':'Make admin'}</button>`:''}
+        ${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}
+      </div>
     </div>`).join('')}</div>
     <h3><span style="color:var(--brand2)">${icon('plus',16)}</span> Add a team member</h3>
     <div class="field"><label>Name</label><input id="su_name" class="authinput" placeholder="e.g. Riya" oninput="suDeriveEmail()"></div>
@@ -1094,6 +1123,29 @@ async function removeUser(email){
   try{ await fdb.doc('meta/access').set(accessDoc); renderSettings(); toast('Member removed','ok'); }
   catch(e){ toast('Could not remove: '+(e.code||e.message),'warn'); }
 }
+async function adminResetKey(email){
+  const ok=await askConfirm({title:'Reset passkey',msg:`Email a secure reset link to <b>${esc(email)}</b>? They open the email and set a brand-new passkey themselves.`,okLabel:'Send reset link'});
+  if(!ok)return;
+  try{ await fbAuth.sendPasswordResetEmail(email); toast('Reset link sent to '+email,'ok'); }
+  catch(e){ toast('Could not send: '+(e.code||e.message),'warn'); }
+}
+async function adminSetRole(email,makeAdmin){
+  if(email==='monish@msfps.in')return; // Monish is always admin
+  if(makeAdmin){ const ok=await askConfirm({title:'Make admin',msg:`Give <b>${esc(email)}</b> full admin access — manage users, and add/edit/delete any record, exactly like you?`,okLabel:'Make admin'}); if(!ok)return; }
+  else { const ok=await askConfirm({title:'Remove admin',msg:`Remove admin access from <b>${esc(email)}</b>? They stay a regular member.`,danger:true,okLabel:'Remove admin'}); if(!ok)return; }
+  const set=new Set(accessDoc.admins||['monish@msfps.in']); if(makeAdmin)set.add(email); else set.delete(email); set.add('monish@msfps.in');
+  accessDoc=Object.assign({},accessDoc,{admins:[...set]});
+  try{ await fdb.doc('meta/access').set(accessDoc); renderSettings(); toast(makeAdmin?'Now an admin ✓':'Admin access removed','ok'); }
+  catch(e){ toast('Could not update: '+(e.code||e.message),'warn'); }
+}
+async function forgotKey(){
+  const nm=(document.getElementById('authName').value||'').trim();
+  if(!nm){ showAuthError('Type your name above first, then tap “Forgot passkey?”'); return; }
+  const email=nm.toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,'')+'@msfps.in';
+  try{ await fbAuth.sendPasswordResetEmail(email);
+    const e=document.getElementById('authErr'); if(e){ e.style.display='block'; e.style.color='var(--ok)'; e.textContent='Reset link sent to '+email+' — open that email to set a new passkey.'; }
+  }catch(err){ showAuthError('Could not send reset link: '+(err.code||err.message)); }
+}
 function buildLoginOptions(){ /* users now type their name — no dropdown */ }
 async function doLogin(){
   const nm=(document.getElementById('authName').value||'').trim();
@@ -1132,9 +1184,9 @@ function subscribeCloud(){
     if(view==='activity')renderActivity(); if(view==='dashboard')renderDashboard();
   }, err=>{});
 }
-async function cloudSave(m,isNew){
+async function cloudSave(m,isNew,detail){
   await fdb.collection('members').doc(String(m.membid)).set(JSON.parse(JSON.stringify(m)));
-  await fdb.collection('activity').add({ts:Date.now(),action:isNew?'create':'edit',membid:String(m.membid),name:m.name,by:(me&&me.name)||'Someone'});
+  await fdb.collection('activity').add({ts:Date.now(),action:isNew?'create':'edit',membid:String(m.membid),name:m.name,detail:detail||'',by:(me&&me.name)||'Someone'});
 }
 function offerImport(){
   if(!SEED_DATA.length)return; // hosting build carries no data — nothing to import
@@ -1379,6 +1431,7 @@ function exportExcel(subset){
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='MSFPS_'+(subset?'Selection_':'Directory_')+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  try{ logAct({action:'export',name:(subset?'Filtered selection':'Full directory'),detail:data.length+' members downloaded as CSV'}).catch(()=>{}); }catch(e){}
   toast('Exported '+data.length+' members to Excel','ok');
 }
 
