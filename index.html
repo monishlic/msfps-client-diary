@@ -441,6 +441,7 @@
       <div class="chip" data-f="noaddr">No Address</div>
       <div class="chip" data-f="senior">Age 60+</div>
       <div class="chip" data-f="minor">Children (&lt;18)</div>
+      <div class="chip" data-f="unmapped">No group mapped <span id="umChipCnt" class="navcnt" style="background:#8e8e93;color:#fff"></span></div>
     </div>
     <div class="dirbar"><div class="meta" id="meta"></div><div style="flex:1"></div>
       <div class="seg lseg" id="layoutSeg">
@@ -482,9 +483,9 @@
     <div id="csDash"></div>
     <div class="panel" style="margin-bottom:12px">
       <h3><span style="color:var(--brand2)"><svg class="ic-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span> Build a list</h3>
-      <div class="csbar"><span class="cslbl tag has">Holds</span><span id="csHoldPills"></span></div>
-      <div class="csbar" style="margin-top:9px"><span class="cslbl tag miss">Missing</span><span id="csMissPills"></span></div>
-      <div class="csbar" style="margin-top:9px"><span class="cslbl">Status</span><span id="csStatusPills"></span>
+      <div style="font-size:12.5px;color:var(--muted);margin:2px 0 9px">Tap a product — once = <b style="color:#1a7f37">has it ✓</b>, again = <b style="color:#c0392b">doesn't have it ✗</b>, again = clear.</div>
+      <div class="csbar"><span id="csProdPills"></span></div>
+      <div class="csbar" style="margin-top:11px"><span class="cslbl">Status</span><span id="csStatusPills"></span>
         <label style="margin-left:auto;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="csShowAll" onchange="csToggleAll(this.checked)" style="width:auto;margin:0"> show all products</label></div>
     </div>
     <div class="cspreset" id="csPresets"></div>
@@ -572,7 +573,10 @@ const PRODUCTS=[
 ];
 const PKEY=Object.fromEntries(PRODUCTS.map(p=>[p.k,p]));
 const PCOLOR={mf:'#0071e3',life:'#34c759',health:'#5856d6',bond:'#ff9500',stocks:'#00c7be',ppf:'#af52de',bullion:'#d4a017',equity:'#ff2d55',las:'#8e8e93',p2p:'#30b0c7',digigold:'#c9a227'};
-let HOLD={}, csHolds=new Set(), csMiss=new Set(), csStatus='all', csShowAll=false, csSpecial=null, csLast=[];
+let HOLD={}, csState={}, csStatus='all', csShowAll=false, csSpecial=null, csLast=[];
+let UNMAPPED={}, pendingConvert=null;
+function umList(){return Object.values(UNMAPPED).sort((a,b)=>String(a.name).localeCompare(String(b.name)));}
+function umCount(){return Object.keys(UNMAPPED).length;}
 function pcolor(k){return PCOLOR[k]||'#0071e3';}
 function activeProducts(){return PRODUCTS.filter(p=>csShowAll||!p.opt);}
 function holdOf(m){return HOLD[String(m.membid)]||null;}
@@ -604,7 +608,7 @@ async function init(){
   if(!ex.length){await putAll(SEED_DATA);ex=SEED_DATA.slice();}
   MEMBERS=ex;
   online=navigator.onLine;setOnline(online,true);
-  loadHoldLocal();
+  loadHoldLocal(); loadUnmapLocal();
   afterData();
 }
 function afterData(){
@@ -790,6 +794,7 @@ let lastList=[];
 function render(){
   const q=document.getElementById('search').value;
   document.getElementById('clrBtn').style.display=q?'block':'none';
+  if(activeFilter==='unmapped'){ const n=renderUnmappedInto('results',q); document.getElementById('meta').innerHTML=`<span><b>${n}</b> unmapped</span><span>no group yet</span>`; const bb=document.getElementById('bulkbar');if(bb)bb.classList.remove('show'); return; }
   const list=search(q);lastList=list;
   const groups=new Set(list.map(m=>m.group_code));
   let metaHtml=`<span><b>${list.length}</b> members</span><span><b>${groups.size}</b> groups</span>`+(q&&scope!=='smart'?`<span>for "<b>${esc(q)}</b>"</span>`:'');
@@ -905,8 +910,9 @@ function renderFamilies(){
   let fams=familyList();
   if(q)fams=fams.filter(f=>norm(f.code).includes(q)||norm(f.name).includes(q)||f.members.some(m=>norm(m.name).includes(q)));
   fams.sort((a,b)=>a.name.localeCompare(b.name));
-  document.getElementById('famMeta').innerHTML=`<span><b>${fams.length}</b> groups</span>`;
-  document.getElementById('famGrid').innerHTML=fams.slice(0,400).map(f=>{
+  document.getElementById('famMeta').innerHTML=`<span><b>${fams.length}</b> groups</span>`+(umCount()?`<span><b>${umCount()}</b> unmapped</span>`:'');
+  const umTile=(!q&&umCount())?`<div class="famcard" onclick="openUnmapped()" style="border:1.5px dashed #b9bcc2;background:var(--chip)"><div class="avatar" style="background:#8e8e93;font-size:16px">?</div><div style="flex:1;min-width:0"><div class="fn">No Group Mapped</div><div class="fs">nominees / prospects — tap to convert</div></div><div class="memberpill" style="background:#8e8e93">${umCount()}</div></div>`:'';
+  document.getElementById('famGrid').innerHTML=umTile+fams.slice(0,400).map(f=>{
     const area=(f.members.find(m=>m.resi_pin)||{}).resi_pin||'';
     return `<div class="famcard" onclick="openFamily('${f.code}')">
       <div class="avatar" style="background:${avatarColor(f.code)};font-size:${avFont(f.code,15)}px;letter-spacing:0">${esc(f.code)}</div>
@@ -1101,6 +1107,7 @@ async function saveMember(id){
     if(view==='directory')render();else if(view==='families')renderFamilies();else renderDashboard();
     try{ await cloudSave(m,isNew,actDetail); toast(navigator.onLine?'Saved ✓ and synced':'Saved ✓ — will sync when online','ok'); }
     catch(e){ toast('Saved on device — will sync when online','ok'); }
+    if(pendingConvert)await finalizeConvert(m);
     return;
   }
   await putOne(m);
@@ -1108,6 +1115,7 @@ async function saveMember(id){
   await actPush({ts:Date.now(),action:isNew?'create':'edit',membid:m.membid,name:m.name,detail:actDetail,by:byName()});
   document.getElementById('famCnt').textContent=new Set(MEMBERS.map(x=>x.group_code)).size;
   refreshQueueUI();closeSheet();
+  if(pendingConvert)await finalizeConvert(m);
   if(view==='directory')render();else if(view==='families')renderFamilies();else renderDashboard();
   if(online){toast('Saved ✓ and synced','ok');setTimeout(trySync,600);}else toast('Saved ✓ on device — will sync when online','ok');
 }
@@ -1298,6 +1306,10 @@ function subscribeCloud(){
   fdb.collection('holdings').onSnapshot(snap=>{
     HOLD={}; snap.docs.forEach(d=>{HOLD[d.id]=d.data();});
     if(view==='crosssell')renderCross();
+  }, err=>{});
+  fdb.collection('unmapped').onSnapshot(snap=>{
+    UNMAPPED={}; snap.docs.forEach(d=>{UNMAPPED[d.id]=d.data();});
+    refreshUnmappedUI();
   }, err=>{});
 }
 async function cloudSave(m,isNew,detail){
@@ -1543,6 +1555,69 @@ function holdDB(){return new Promise((res,rej)=>{const r=indexedDB.open('msfps_h
 async function loadHoldLocal(){try{const d=await holdDB();const rq=d.transaction('h','readonly').objectStore('h').getAll();rq.onsuccess=()=>{HOLD={};(rq.result||[]).forEach(x=>{HOLD[String(x.membid)]=x;});if(view==='crosssell')renderCross();};}catch(e){}}
 async function saveHoldLocal(recs){try{const d=await holdDB();const s=d.transaction('h','readwrite').objectStore('h');recs.forEach(r=>s.put(r));return new Promise(r=>{s.transaction.oncomplete=()=>r();});}catch(e){}}
 
+/* ===== Unmapped prospects (no group) — separate bucket, surfaced everywhere ===== */
+function umId(gc,nm){return ('u_'+String(gc)+'_'+String(nm)).toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,120);}
+function umDB(){return new Promise((res,rej)=>{const r=indexedDB.open('msfps_unmapped',1);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('u'))d.createObjectStore('u',{keyPath:'id'});};r.onsuccess=e=>res(e.target.result);r.onerror=rej;});}
+async function loadUnmapLocal(){try{const d=await umDB();const rq=d.transaction('u','readonly').objectStore('u').getAll();rq.onsuccess=()=>{UNMAPPED={};(rq.result||[]).forEach(x=>UNMAPPED[x.id]=x);refreshUnmappedUI();};}catch(e){}}
+async function saveUnmapLocal(recs,replace){try{const d=await umDB();const s=d.transaction('u','readwrite').objectStore('u');if(replace)s.clear();recs.forEach(r=>s.put(r));return new Promise(r=>{s.transaction.oncomplete=()=>r();});}catch(e){}}
+async function delUnmapLocal(id){try{const d=await umDB();const s=d.transaction('u','readwrite').objectStore('u');s.delete(id);return new Promise(r=>{s.transaction.oncomplete=()=>r();});}catch(e){}}
+function refreshUnmappedUI(){ const c=umCount(); const el=document.getElementById('umChipCnt'); if(el)el.textContent=c?('· '+c):''; if(view==='families')renderFamilies(); if(view==='crosssell')renderCross(); if(view==='directory'&&activeFilter==='unmapped')render(); }
+function umCard(r){
+  const mob=r.mobile?firstPhone(r.mobile):'';const aprod=activeProducts();const held=aprod.filter(x=>r.products&&r.products[x.k]);
+  return `<div class="card"><div style="display:flex;gap:11px;align-items:flex-start">
+    <div class="avatar" style="background:#8e8e93;font-size:16px">?</div>
+    <div style="flex:1;min-width:0">
+      <div class="nm">${esc(r.name)}<span class="tag miss" style="margin-left:6px">no group</span>${r.status?`<span class="tag ${r.status==='active'?'has':'miss'}" style="margin-left:4px">${esc(r.status)}</span>`:''}</div>
+      <div class="fam">Related group: <b>${esc(r.group_code||'—')}</b></div>
+      <div class="csgaps">${held.length?held.map(x=>`<span class="chold">✓ ${esc(x.label)}</span>`).join(''):'<span class="cmiss">no products on file</span>'}</div>
+      <div class="callrow" style="margin-top:8px">${mob?`<a href="tel:${mob}">${icon('phone',15)} Call</a><a href="https://wa.me/91${mob}" target="_blank" rel="noopener">${icon('message',15)} WhatsApp</a>`:'<span class="krow mut" style="padding:0 4px">No mobile</span>'}${r.email?`<a href="mailto:${esc(r.email)}">${icon('mail',15)} Email</a>`:''}${isAdmin?`<a href="javascript:void(0)" onclick="convertUnmapped('${esc(r.id)}')">${icon('plus',15)} Convert to client</a>`:''}</div>
+    </div></div></div>`;
+}
+function renderUnmappedInto(cid,q){
+  q=norm(q||'').trim();let list=umList();
+  if(q)list=list.filter(r=>norm(r.name).includes(q)||norm(r.group_code).includes(q)||(digits(q)&&digits(r.mobile).includes(digits(q))));
+  const el=document.getElementById(cid);if(!el)return list.length;
+  el.classList.remove('list');
+  el.innerHTML=list.length?list.slice(0,400).map(umCard).join('')+(list.length>400?`<div class="empty" style="grid-column:1/-1">Showing first 400 of ${list.length}.</div>`:''):`<div class="empty" style="grid-column:1/-1"><div class="big" style="color:var(--muted)">${icon('users',34)}</div>${umCount()?'No unmapped people match.':'No unmapped people. They appear here after an import (nominees / people not linked to a client).'}</div>`;
+  return list.length;
+}
+function openUnmapped(){
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML=`<div class="shead"><div class="avatar" style="background:#8e8e93;font-size:16px">?</div><div style="flex:1"><h2>No Group Mapped</h2><div class="sub">${umCount()} people not linked to a client / group</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
+  <div class="sbody">
+    <div class="searchbox" style="margin-bottom:10px"><span class="si">${icon('search',18)}</span><input id="umSearch" placeholder="Search unmapped…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="renderUnmappedInto('umGrid',this.value)"></div>
+    <div class="results" id="umGrid"></div>
+  </div>
+  <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button></div>`;
+  document.getElementById('overlay').classList.add('show');
+  renderUnmappedInto('umGrid','');
+}
+function convertUnmapped(id){
+  const r=UNMAPPED[id];if(!r){toast('Not found','warn');return;}
+  pendingConvert={id:id,products:r.products||{},status:r.status||'active'};
+  openEdit(null);
+  setTimeout(()=>{
+    const gc=String(r.group_code||'').trim();
+    const exists=gc && famOf(gc).length>0;
+    if(exists){ selectGroup(gc); }
+    else if(gc){ setF('f_gc',gc); codeAuto=false; }
+    setF('f_name',r.name||'');
+    if(r.mobile)setF('f_mob',r.mobile);
+    if(r.email)setF('f_em',r.email);
+  },50);
+}
+async function finalizeConvert(m){
+  if(!pendingConvert)return; const pc=pendingConvert; pendingConvert=null;
+  const rec={membid:String(m.membid),name:m.name,group_code:m.group_code,products:pc.products||{},status:pc.status||'active',src:'convert',updated:Date.now()};
+  try{
+    if(CLOUD){ await fdb.collection('holdings').doc(String(m.membid)).set(rec); try{await fdb.collection('unmapped').doc(pc.id).delete();}catch(e){} }
+    else { await saveHoldLocal([rec]); await delUnmapLocal(pc.id); }
+    HOLD[String(m.membid)]=rec; delete UNMAPPED[pc.id];
+    logAct({action:'create',membid:String(m.membid),name:m.name,detail:'Converted from unmapped into group '+m.group_code}).catch(()=>{});
+    toast('Converted to client ✓','ok');
+  }catch(e){}
+}
+
 /* ===== Cross-sell tab ===== */
 function csUniverse(){
   if(csStatus==='nodata') return MEMBERS.filter(m=>!holdOf(m));
@@ -1552,23 +1627,19 @@ function csUniverse(){
   return base;
 }
 function renderCross(){
-  csRenderDash(); csRenderPills(); csRenderStatus(); csRenderPresets();
+  csRenderDash(); csRenderProd(); csRenderStatus(); csRenderPresets();
+  if(csStatus==='unmapped'){ const qq=(document.getElementById('csSearch')||{}).value||''; const n=renderUnmappedInto('csResults',qq); csLast=[]; document.getElementById('csSum').innerHTML=`<b>${n}</b> unmapped prospect${n!==1?'s':''} — not linked to any client or group`; return; }
   const q=norm((document.getElementById('csSearch')||{}).value||'').trim();const qd=digits(q);
   const aprod=activeProducts();
   let list=csUniverse().filter(m=>{
     const p=((holdOf(m)||{}).products)||{};
-    for(const k of csHolds) if(!p[k]) return false;
-    for(const k of csMiss) if(p[k]) return false;
+    for(const k in csState){ if(csState[k]==='has'&&!p[k]) return false; if(csState[k]==='no'&&p[k]) return false; }
     if(csSpecial==='single'){ if(aprod.filter(x=>p[x.k]).length!==1) return false; }
     if(q){ const hay=norm(m.name)+' '+norm(m.group_code)+' '+norm(m.group_name)+' '+digits(m.mobile); if(!hay.includes(q)&&!(qd&&digits(m.mobile).includes(qd))) return false; }
     return true;
   });
   list=sortName(list); csLast=list;
-  const parts=[];
-  if(csHolds.size)parts.push('holds '+[...csHolds].map(k=>PKEY[k].label).join(' + '));
-  if(csMiss.size)parts.push('missing '+[...csMiss].map(k=>PKEY[k].label).join(' + '));
-  if(csSpecial==='single')parts.push('only 1 product');
-  document.getElementById('csSum').innerHTML=`<b>${list.length}</b> client${list.length!==1?'s':''}`+(parts.length?' — '+esc(parts.join(', ')):'')+(csStatus!=='all'?' · '+esc(csStatus==='nodata'?'no data yet':csStatus):'');
+  document.getElementById('csSum').innerHTML=csReadout(list.length)+(csStatus!=='all'?` · <span style="color:var(--muted)">${esc(csStatus==='nodata'?'no data yet':csStatus)}</span>`:'');
   const res=document.getElementById('csResults');
   if(!list.length){res.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big" style="color:var(--muted)">${icon('search',36)}</div>${Object.keys(HOLD).length?'No clients match this combination.':'No product data yet. '+(isAdmin?'Tap <b>Import / refresh</b> to load your Active & Inactive files.':'Ask Monish to import the product files.')}</div>`;return;}
   res.innerHTML=list.slice(0,300).map(csCard).join('')+(list.length>300?`<div class="empty" style="grid-column:1/-1;padding:16px">Showing first 300 of ${list.length}. Narrow with filters.</div>`:'');
@@ -1587,36 +1658,43 @@ function csCard(m){
       <div class="callrow" style="margin-top:8px">${mob?`<a href="tel:${mob}">${icon('phone',15)} Call</a><a href="https://wa.me/91${mob}" target="_blank" rel="noopener">${icon('message',15)} WhatsApp</a>`:'<span class="krow mut" style="padding:0 4px">No mobile</span>'}${(m.emails&&m.emails.length)?`<a href="mailto:${esc(m.emails[0])}">${icon('mail',15)} Email</a>`:''}${isAdmin?`<a href="javascript:void(0)" onclick="csEditProducts('${m.membid}')">${icon('edit',15)} Products</a>`:''}</div>
     </div></div></div>`;
 }
-function csRenderPills(){
-  const mk=(id,set,cls)=>{const el=document.getElementById(id);if(el)el.innerHTML=activeProducts().map(p=>`<button class="cspill ${set.has(p.k)?cls:''}" onclick="csTogglePill('${id}','${p.k}')">${esc(p.label)}</button>`).join('');};
-  mk('csHoldPills',csHolds,'on-has'); mk('csMissPills',csMiss,'on-miss');
+function csRenderProd(){
+  const el=document.getElementById('csProdPills'); if(!el)return;
+  el.innerHTML=activeProducts().map(p=>{const s=csState[p.k];const cls=s==='has'?'on-has':(s==='no'?'on-miss':'');const mark=s==='has'?'✓ ':(s==='no'?'✗ ':'');return `<button class="cspill ${cls}" onclick="csCycle('${p.k}')">${mark}${esc(p.label)}</button>`;}).join('');
 }
-function csTogglePill(id,k){
-  csSpecial=null;
-  if(id==='csHoldPills'){ if(csHolds.has(k))csHolds.delete(k); else {csHolds.add(k);csMiss.delete(k);} }
-  else { if(csMiss.has(k))csMiss.delete(k); else {csMiss.add(k);csHolds.delete(k);} }
-  renderCross();
+function csCycle(k){ const s=csState[k]; if(!s)csState[k]='has'; else if(s==='has')csState[k]='no'; else delete csState[k]; csSpecial=null; renderCross(); }
+function csReadout(n){
+  const has=activeProducts().filter(p=>csState[p.k]==='has').map(p=>p.label);
+  const no=activeProducts().filter(p=>csState[p.k]==='no').map(p=>p.label);
+  if(csSpecial==='single')return `<b>${n}</b> client${n!==1?'s':''} who hold <b>exactly one</b> product`;
+  if(!has.length&&!no.length)return `<b>${n}</b> client${n!==1?'s':''} with product data — tap a product, or pick a Quick list`;
+  let s=`<b>${n}</b> client${n!==1?'s':''} who `;
+  if(has.length)s+=`<span style="color:#1a7f37;font-weight:700">have ${esc(has.join(' + '))}</span>`;
+  if(has.length&&no.length)s+=' and ';
+  if(no.length)s+=`<span style="color:#c0392b;font-weight:700">don't have ${esc(no.join(' + '))}</span>`;
+  return s;
 }
 function csRenderStatus(){
-  const opts=[['all','All clients'],['active','Active'],['inactive','Inactive'],['nodata','No data yet']];
+  const opts=[['all','All clients'],['active','Active'],['inactive','Inactive'],['nodata','No data yet'],['unmapped','No group mapped'+(umCount()?' ('+umCount()+')':'')]];
   const el=document.getElementById('csStatusPills');if(el)el.innerHTML=opts.map(([v,l])=>`<button class="cspill ${csStatus===v?'on-has':''}" onclick="csSetStatus('${v}')">${l}</button>`).join('');
 }
 function csSetStatus(v){csStatus=v;renderCross();}
 function csToggleAll(b){csShowAll=b;renderCross();}
-function csClear(){csHolds.clear();csMiss.clear();csSpecial=null;csStatus='all';const s=document.getElementById('csSearch');if(s)s.value='';renderCross();}
+function csClear(){csState={};csSpecial=null;csStatus='all';const s=document.getElementById('csSearch');if(s)s.value='';renderCross();}
 function csPreset(id){
-  csHolds=new Set();csMiss=new Set();csSpecial=null;csStatus='all';
-  if(id==='life_no_mf'){csHolds.add('life');csMiss.add('mf');}
-  else if(id==='health_no_mf'){csHolds.add('health');csMiss.add('mf');}
-  else if(id==='life_no_health'){csHolds.add('life');csMiss.add('health');}
-  else if(id==='health_no_life'){csHolds.add('health');csMiss.add('life');}
-  else if(id==='hasmf'){csHolds.add('mf');}
+  csState={};csSpecial=null;csStatus='all';
+  if(id==='no_mf'){csState.mf='no';}
+  else if(id==='no_health'){csState.health='no';}
+  else if(id==='no_life'){csState.life='no';}
+  else if(id==='life_no_mf'){csState.life='has';csState.mf='no';}
+  else if(id==='health_no_mf'){csState.health='has';csState.mf='no';}
+  else if(id==='hasmf'){csState.mf='has';}
   else if(id==='single'){csSpecial='single';}
   renderCross();
 }
 function csRenderPresets(){
-  const P=[['life_no_mf','Life · no Mutual Fund'],['health_no_mf','Health · no Mutual Fund'],['life_no_health','Life · no Health'],['health_no_life','Health · no Life'],['single','Only 1 product'],['hasmf','Has Mutual Fund']];
-  const el=document.getElementById('csPresets');if(el)el.innerHTML='<span class="cslbl" style="align-self:center">Quick</span>'+P.map(([id,l])=>`<button onclick="csPreset('${id}')">${esc(l)}</button>`).join('');
+  const P=[['no_mf','No Mutual Fund'],['no_health','No Health'],['no_life','No Life'],['life_no_mf','Has Life · no MF'],['health_no_mf','Has Health · no MF'],['single','Only 1 product']];
+  const el=document.getElementById('csPresets');if(el)el.innerHTML='<span class="cslbl" style="align-self:center">Quick lists</span>'+P.map(([id,l])=>`<button onclick="csPreset('${id}')">${esc(l)}</button>`).join('');
 }
 function csRenderDash(){
   const mapped=MEMBERS.filter(m=>holdOf(m));
@@ -1681,9 +1759,11 @@ async function parseHoldFile(file,status){
   return rows.map(r=>{
     const low={};Object.keys(r).forEach(k=>low[String(k).toLowerCase().trim()]=r[k]);
     const gc=String(low['group code']||'').trim(), nm=String(low['customer name']||'').trim();
+    const mobile=String(low['mobile no']||low['mobile']||'').trim();
+    const email=String(low['e-mail id']||low['email id']||low['e-mail']||low['email']||'').trim();
     const prods={};
     PRODUCTS.forEach(pr=>{for(const c of pr.cols){const hk=Object.keys(low).find(h=>h.indexOf(c)>=0);if(hk&&String(low[hk]).trim().toLowerCase()==='yes'){prods[pr.k]=true;break;}}});
-    return {gc,nm,prods,status};
+    return {gc,nm,prods,status,mobile,email};
   }).filter(r=>r.gc&&r.nm);
 }
 async function runHoldingsImport(){
@@ -1696,9 +1776,11 @@ async function runHoldingsImport(){
   let rows=[];
   try{ if(fa)rows=rows.concat(await parseHoldFile(fa,'active')); if(fi)rows=rows.concat(await parseHoldFile(fi,'inactive')); }
   catch(e){ out.innerHTML='<div class="autherr" style="display:block">Could not read the file: '+esc(e.message||e)+'</div>';btn.disabled=false;btn.textContent='Import';return; }
-  const byKey={};MEMBERS.forEach(m=>{byKey[csKey(m.group_code,m.name)]=m;});
-  const recs=[],unmatched=[];let matched=0;
-  rows.forEach(r=>{const m=byKey[csKey(r.gc,r.nm)];
+  const byKey={}, byFL={};
+  MEMBERS.forEach(m=>{ byKey[csKey(m.group_code,m.name)]=m; const t=norm(m.name).split(/\s+/).filter(Boolean); if(t.length){const fl=String(m.group_code).trim().toUpperCase()+'|'+t[0]+'|'+t[t.length-1];(byFL[fl]=byFL[fl]||[]).push(m);} });
+  const recs=[],unmatched=[];let matched=0,fuzzy=0;
+  rows.forEach(r=>{ let m=byKey[csKey(r.gc,r.nm)];
+    if(!m){ const t=norm(r.nm).split(/\s+/).filter(Boolean); if(t.length){const c=byFL[String(r.gc).trim().toUpperCase()+'|'+t[0]+'|'+t[t.length-1]]; if(c&&c.length===1){m=c[0];fuzzy++;}} }
     if(m){matched++;recs.push({membid:String(m.membid),name:m.name,group_code:m.group_code,products:r.prods,status:r.status,src:'import',updated:Date.now()});}
     else unmatched.push(r);});
   btn.textContent='Saving…';
@@ -1706,10 +1788,15 @@ async function runHoldingsImport(){
     if(CLOUD){ for(let i=0;i<recs.length;i+=400){const b=fdb.batch();recs.slice(i,i+400).forEach(x=>b.set(fdb.collection('holdings').doc(x.membid),x));await b.commit();btn.textContent='Saving… '+Math.min(i+400,recs.length)+'/'+recs.length;} }
     else { await saveHoldLocal(recs); }
     recs.forEach(x=>HOLD[x.membid]=x);
+    // bucket the unmatched rows as "unmapped prospects" — don't discard them
+    const umDedup={};unmatched.forEach(r=>{const x={id:umId(r.gc,r.nm),name:r.nm,group_code:r.gc,products:r.prods,status:r.status,mobile:r.mobile||'',email:r.email||'',updated:Date.now()};umDedup[x.id]=x;});
+    const umArr=Object.values(umDedup);
+    if(CLOUD){ const oldIds=Object.keys(UNMAPPED); for(let i=0;i<oldIds.length;i+=400){const b=fdb.batch();oldIds.slice(i,i+400).forEach(id=>b.delete(fdb.collection('unmapped').doc(id)));await b.commit();} for(let i=0;i<umArr.length;i+=400){const b=fdb.batch();umArr.slice(i,i+400).forEach(x=>b.set(fdb.collection('unmapped').doc(x.id),x));await b.commit();} }
+    else { UNMAPPED={}; umArr.forEach(x=>UNMAPPED[x.id]=x); await saveUnmapLocal(umArr,true); refreshUnmappedUI(); }
   }catch(e){ out.innerHTML='<div class="autherr" style="display:block">Save failed: '+esc(e.code||e.message)+'</div>';btn.disabled=false;btn.textContent='Import';return; }
-  logAct({action:'import',name:'Product data import',detail:matched+' clients updated · '+unmatched.length+' non-client rows ignored'}).catch(()=>{});
-  const recon=unmatched.length?`<div class="recon"><b>${unmatched.length} rows didn't match a client (ignored — likely nominees):</b>${unmatched.slice(0,60).map(r=>`<div class="ri"><span>${esc(r.nm)}</span><span class="dupsub">${esc(r.gc)}</span></div>`).join('')}${unmatched.length>60?`<div class="ri">…and ${unmatched.length-60} more</div>`:''}</div>`:'';
-  out.innerHTML=`<div class="importbanner" style="display:block"><b>Done ✓</b> ${matched} clients updated. ${unmatched.length} non-client rows ignored.</div>${recon}`;
+  logAct({action:'import',name:'Product data import',detail:matched+' clients updated'+(fuzzy?' ('+fuzzy+' by close name)':'')+' · '+unmatched.length+' sent to No Group Mapped'}).catch(()=>{});
+  const recon=unmatched.length?`<div class="recon"><b>${unmatched.length} rows weren't linked to a client — saved to <u>No Group Mapped</u> (convert them anytime):</b>${unmatched.slice(0,80).map(r=>`<div class="ri"><span>${esc(r.nm)}</span><span class="dupsub">${esc(r.gc)}</span></div>`).join('')}${unmatched.length>80?`<div class="ri">…and ${unmatched.length-80} more</div>`:''}</div>`:'';
+  out.innerHTML=`<div class="importbanner" style="display:block"><b>Done ✓</b> ${matched} clients updated${fuzzy?` (${fuzzy} matched by close name)`:''}. ${unmatched.length} unmapped prospects saved to the <b>No Group Mapped</b> list.</div>${recon}`;
   btn.disabled=false;btn.textContent='Import again'; renderCross();
 }
 /* ===== Styled Excel exports (ExcelJS when online, CSV fallback) ===== */
@@ -1754,7 +1841,8 @@ async function exportCross(){
   const headers=[{label:'Group',width:9},{label:'Name',width:24},{label:'Status',width:10},{label:'Mobile',width:16},{label:'Email',width:28}].concat(aprod.map(p=>({label:p.label,width:13}))).concat([{label:'Gaps (to pitch)',width:42}]);
   const rows=list.map(m=>{const p=(holdOf(m)||{}).products||{};const base=[m.group_code,m.name,(holdOf(m)||{}).status||'',m.mobile||'',((m.emails||[])[0]||'')];const pc=aprod.map(x=>p[x.k]?'Yes':'No');const gaps=aprod.filter(x=>!p[x.k]).map(x=>x.label).join(', ');return base.concat(pc,[gaps]);});
   await styledExport({file:'MSFPS_CrossSell_'+today()+'.xlsx',sheets:[{name:'Cross-sell',headers,rows,cellFmt:(row,r)=>{aprod.forEach((x,idx)=>{const c=row.getCell(6+idx);if(c.value==='Yes'){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE7F7EC'}};c.font={color:{argb:'FF1A7F37'},bold:true};}else{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFDECEB'}};c.font={color:{argb:'FFC0392B'}};}});}}]});
-  const parts=[];if(csHolds.size)parts.push('Holds '+[...csHolds].map(k=>PKEY[k].label).join('+'));if(csMiss.size)parts.push('Missing '+[...csMiss].map(k=>PKEY[k].label).join('+'));if(csSpecial==='single')parts.push('Only 1 product');
+  const has=activeProducts().filter(p=>csState[p.k]==='has').map(p=>p.label), no=activeProducts().filter(p=>csState[p.k]==='no').map(p=>p.label);
+  const parts=[];if(has.length)parts.push('Has '+has.join('+'));if(no.length)parts.push('No '+no.join('+'));if(csSpecial==='single')parts.push('Only 1 product');
   logAct({action:'export',name:'Cross-sell'+(parts.length?' ('+parts.join(' · ')+')':''),detail:rows.length+' clients to Excel'}).catch(()=>{});
 }
 
