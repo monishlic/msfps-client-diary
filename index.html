@@ -159,6 +159,9 @@
   .actitem .at{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
   .acttime{font-size:11px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
   .actdetail{font-size:12px;color:var(--ink);background:var(--chip);border-radius:8px;padding:5px 9px;margin-top:5px;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.45}
+  .matchwhy{font-size:11.5px;color:var(--brand-ink);background:rgba(0,113,227,.07);border-radius:6px;padding:3px 7px;margin-top:5px;overflow-wrap:anywhere;display:flex;align-items:center;gap:5px}
+  .matchwhy.mutwhy{color:var(--muted);background:var(--chip)}
+  .matchwhy mark{background:#ffe08a;color:inherit;padding:0 1px;border-radius:2px}
   /* modal */
   .overlay{position:fixed;inset:0;background:rgba(20,45,85,.4);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
   .overlay.show{display:flex}
@@ -341,6 +344,36 @@
   .lchev{color:#b9c6da;flex-shrink:0;display:flex}
   @media(max-width:680px){.lcell.area{display:none}.lcell{width:118px}}
   @media(max-width:480px){.lcell.mono{display:none}.lchev{display:none}}
+  /* ===== Cross-sell tab ===== */
+  .csbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 2px}
+  .cslbl{font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;min-width:60px}
+  .cspill{border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:7px 13px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:.12s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .cspill:hover{border-color:var(--brand)}
+  .cspill.on-has{background:#e7f7ec;border-color:#34c759;color:#1a7f37}
+  .cspill.on-miss{background:#fdeceb;border-color:#ff3b30;color:#c0392b}
+  .csrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:10px}
+  .csrow .tag{font-size:10.5px;font-weight:800;letter-spacing:.5px;padding:3px 8px;border-radius:7px}
+  .tag.has{background:#e7f7ec;color:#1a7f37}.tag.miss{background:#fdeceb;color:#c0392b}
+  .cspreset{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 12px}
+  .cspreset button{border:none;background:linear-gradient(120deg,rgba(0,113,227,.1),rgba(6,182,212,.1));color:var(--brand-ink);font-weight:650;font-size:12.5px;padding:8px 13px;border-radius:11px;cursor:pointer;transition:.12s}
+  .cspreset button:hover{background:linear-gradient(120deg,rgba(0,113,227,.18),rgba(6,182,212,.18))}
+  .cskpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+  .cskpi .k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+  .cskpi .k .n{font-size:24px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em}
+  .cskpi .k .l{font-size:11.5px;color:var(--muted);margin-top:3px;font-weight:600}
+  .pen{display:flex;align-items:center;gap:10px;margin:7px 0}
+  .pen .pl{width:120px;font-size:12.5px;font-weight:600;flex-shrink:0}
+  .pen .pt{flex:1;height:9px;background:var(--chip);border-radius:6px;overflow:hidden}
+  .pen .pf{height:100%;border-radius:6px}
+  .pen .pv{width:96px;text-align:right;font-size:12px;color:var(--muted);font-family:var(--mono);flex-shrink:0}
+  .csgaps{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .chold{font-size:11px;font-weight:700;padding:2px 8px;border-radius:7px;background:#e7f7ec;color:#1a7f37}
+  .cmiss{font-size:11px;font-weight:700;padding:2px 8px;border-radius:7px;background:var(--chip);color:var(--muted);border:1px dashed #c9ccd1}
+  .csactions{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+  .cssum{font-size:13px;color:var(--muted);margin:2px 2px 10px}
+  .cssum b{color:var(--ink)}
+  .recon{background:var(--chip);border-radius:11px;padding:10px 12px;margin-top:10px;font-size:12.5px;max-height:220px;overflow:auto}
+  .recon .ri{padding:3px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
 </style>
 </head>
 <body>
@@ -350,6 +383,7 @@
     <button class="navitem active" data-v="dashboard" onclick="showView('dashboard')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span></button>
     <button class="navitem" data-v="directory" onclick="showView('directory')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Members</span></button>
     <button class="navitem" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span><span class="navcnt" id="famCnt"></span></button>
+    <button class="navitem" data-v="crosssell" onclick="showView('crosssell')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg><span>Cross-Sell</span></button>
     <button class="navitem" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
     <button class="navitem" data-v="settings" onclick="showView('settings')" style="display:none"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
   </nav>
@@ -363,6 +397,7 @@
   <button class="bnav active" data-v="dashboard" onclick="showView('dashboard')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Home</span></button>
   <button class="bnav" data-v="directory" onclick="showView('directory')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Members</span></button>
   <button class="bnav" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span></button>
+  <button class="bnav" data-v="crosssell" onclick="showView('crosssell')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg><span>Cross</span></button>
   <button class="bnav" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
   <button class="bnav" data-v="settings" onclick="showView('settings')" style="display:none"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
 </div>
@@ -423,7 +458,9 @@
       <span class="si"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
       <input id="famSearch" type="text" placeholder="Search group by code or name…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search">
     </div>
-    <div class="meta" id="famMeta"></div>
+    <div class="dirbar"><div class="meta" id="famMeta"></div><div style="flex:1"></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportGroups()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export groups</button>
+    </div>
     <div class="famgrid" id="famGrid"></div>
   </section>
 
@@ -438,6 +475,32 @@
       </div>
       <div id="actList"></div>
     </div>
+  </section>
+
+  <!-- CROSS-SELL -->
+  <section class="view" id="view-crosssell">
+    <div id="csDash"></div>
+    <div class="panel" style="margin-bottom:12px">
+      <h3><span style="color:var(--brand2)"><svg class="ic-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span> Build a list</h3>
+      <div class="csbar"><span class="cslbl tag has">Holds</span><span id="csHoldPills"></span></div>
+      <div class="csbar" style="margin-top:9px"><span class="cslbl tag miss">Missing</span><span id="csMissPills"></span></div>
+      <div class="csbar" style="margin-top:9px"><span class="cslbl">Status</span><span id="csStatusPills"></span>
+        <label style="margin-left:auto;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="csShowAll" onchange="csToggleAll(this.checked)" style="width:auto;margin:0"> show all products</label></div>
+    </div>
+    <div class="cspreset" id="csPresets"></div>
+    <div class="searchbox" style="margin:2px 0 10px">
+      <span class="si"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <input id="csSearch" type="text" placeholder="Search within results — name, group, mobile…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" oninput="renderCross()">
+      <button class="clr" onclick="document.getElementById('csSearch').value='';renderCross()">×</button>
+    </div>
+    <div class="cssum" id="csSum"></div>
+    <div class="csactions">
+      <button class="btn btn-ghost btn-sm" onclick="csClear()">Clear filters</button>
+      <button class="btn btn-ghost btn-sm" onclick="csCopyNumbers()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy numbers</button>
+      <button class="btn btn-primary btn-sm" onclick="exportCross()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export this list</button>
+      <button class="btn btn-ghost btn-sm" id="csImportBtn" onclick="openHoldingsImport()" style="display:none"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 8 12 3 17 8"/><path d="M21 21H3"/></svg> Import / refresh</button>
+    </div>
+    <div class="results" id="csResults"></div>
   </section>
 
   <!-- SETTINGS (admin) -->
@@ -493,6 +556,28 @@ const CLOUD=!!(FB_CONFIG&&FB_CONFIG.apiKey);
 let fbApp,fbAuth,fdb,me=null,cloudAct=[];
 let isAdmin=false, accessDoc={emails:[],users:[],admins:[]}, pendingInvite=null, inviteName=null, prefillName='';
 const RECENT_KEY='msfps_recent';
+/* ===== Cross-sell (separate 'holdings' layer — never touches members/groups) ===== */
+const PRODUCTS=[
+ {k:'mf',label:'Mutual Fund',cols:['mutual fund']},
+ {k:'life',label:'Life Insurance',cols:['life insurance']},
+ {k:'health',label:'Health / General',cols:['general insurance']},
+ {k:'bond',label:'Bond',cols:['bond']},
+ {k:'stocks',label:'Stocks',cols:['stocks']},
+ {k:'ppf',label:'PPF',cols:['ppf'],opt:true},
+ {k:'bullion',label:'Bullion',cols:['bullion'],opt:true},
+ {k:'equity',label:'Equity Baskets',cols:['equity baskets'],opt:true},
+ {k:'las',label:'Loan Against Securities',cols:['loan against secur'],opt:true},
+ {k:'p2p',label:'P2P Investment',cols:['p2p investment'],opt:true},
+ {k:'digigold',label:'DigiGold',cols:['digigold'],opt:true}
+];
+const PKEY=Object.fromEntries(PRODUCTS.map(p=>[p.k,p]));
+const PCOLOR={mf:'#0071e3',life:'#34c759',health:'#5856d6',bond:'#ff9500',stocks:'#00c7be',ppf:'#af52de',bullion:'#d4a017',equity:'#ff2d55',las:'#8e8e93',p2p:'#30b0c7',digigold:'#c9a227'};
+let HOLD={}, csHolds=new Set(), csMiss=new Set(), csStatus='all', csShowAll=false, csSpecial=null, csLast=[];
+function pcolor(k){return PCOLOR[k]||'#0071e3';}
+function activeProducts(){return PRODUCTS.filter(p=>csShowAll||!p.opt);}
+function holdOf(m){return HOLD[String(m.membid)]||null;}
+function csKey(gc,nm){return String(gc||'').trim().toUpperCase()+'||'+String(nm||'').toLowerCase().replace(/\s+/g,' ').trim();}
+function today(){return new Date().toISOString().slice(0,10);}
 
 /* ---------- IndexedDB ---------- */
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);
@@ -519,6 +604,7 @@ async function init(){
   if(!ex.length){await putAll(SEED_DATA);ex=SEED_DATA.slice();}
   MEMBERS=ex;
   online=navigator.onLine;setOnline(online,true);
+  loadHoldLocal();
   afterData();
 }
 function afterData(){
@@ -587,14 +673,26 @@ function showView(v){
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('show'));
   document.getElementById('view-'+v).classList.add('show');
   document.querySelectorAll('[data-v]').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
-  const titles={dashboard:'Dashboard',directory:'Members',families:'Groups',activity:'Activity',settings:'Settings'};
+  const titles={dashboard:'Dashboard',directory:'Members',families:'Groups',activity:'Activity',settings:'Settings',crosssell:'Cross-Sell'};
   document.getElementById('pageTitle').textContent=titles[v]||'';
-  const fab=document.querySelector('.fab'); if(fab) fab.style.display=((v==='settings'||v==='activity')&&window.innerWidth<=820)?'none':'';
+  const fab=document.querySelector('.fab'); if(fab) fab.style.display=(v==='crosssell'||((v==='settings'||v==='activity')&&window.innerWidth<=820))?'none':'';
+  // Opening a section always starts fresh — clear any leftover search/filter from last time
+  if(v==='directory'){
+    const s=document.getElementById('search'); if(s){s.value='';s.placeholder='Search name, group code, phone, email, area…';}
+    scope='all'; activeFilter='all';
+    const cb=document.getElementById('clrBtn'); if(cb)cb.style.display='none';
+    document.querySelectorAll('#scopeSeg .segbtn').forEach(x=>x.classList.toggle('active',x.dataset.s==='all'));
+    document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x.dataset.f==='all'));
+  }
+  if(v==='families'){ const s=document.getElementById('famSearch'); if(s)s.value=''; }
+  if(v==='activity'){ const s=document.getElementById('actSearch'); if(s)s.value=''; }
+  if(v==='crosssell'){ const s=document.getElementById('csSearch'); if(s)s.value=''; }
   if(v==='dashboard')renderDashboard();
   if(v==='families')renderFamilies();
   if(v==='activity')renderActivity();
   if(v==='directory')render();
   if(v==='settings')renderSettings();
+  if(v==='crosssell')renderCross();
   window.scrollTo(0,0);
 }
 
@@ -674,6 +772,19 @@ function hl(text,q){if(!q)return esc(text);const whole=q.trim();const pats=[];
   if(whole.split(/\s+/).length>1)pats.push(escRe(whole));
   whole.split(/\s+/).filter(t=>t.length>=2).forEach(t=>pats.push(escRe(t)));
   if(!pats.length)return esc(text);return esc(text).replace(new RegExp('('+pats.join('|')+')','gi'),'<mark>$1</mark>');}
+function _snip(text,q){text=''+text;const i=norm(text).indexOf(norm(q));if(i<0)return hl(text.slice(0,44),q);const s=Math.max(0,i-14),e=Math.min(text.length,i+q.length+18);return (s>0?'…':'')+hl(text.slice(s,e),q)+(e<text.length?'…':'');}
+/* Explain WHY a member matched when the query isn't visible in the name (Everything scope) */
+function whyMatch(m,q){
+  q=norm(q).trim(); if(!q||scope==='name'||scope==='mobile'||scope==='smart')return '';
+  if(norm(m.name).includes(q))return ''; // already highlighted in the name
+  const addr=((m.resi_address||'')+'  '+(m.offi_address||'')).trim();
+  if(norm(addr).includes(q))return `<div class="krow matchwhy"><span class="ic">${icon('pin',13)}</span>in address: ${_snip(addr,q)}</div>`;
+  const em=(m.emails||[]).join(', ');
+  if(norm(em).includes(q))return `<div class="krow matchwhy"><span class="ic">${icon('mail',13)}</span>in email: ${_snip(em,q)}</div>`;
+  if((norm(m.group_code)+' '+norm(m.group_name)).includes(q))return `<div class="krow matchwhy"><span class="ic">${icon('users',13)}</span>in group: ${hl(m.group_code+' · '+m.group_name,q)}</div>`;
+  const qd=digits(q); if(qd&&phoneHay(m).replace(/\s/g,'').includes(qd))return `<div class="krow matchwhy"><span class="ic">${icon('phone',13)}</span>in another saved number</div>`;
+  return `<div class="krow matchwhy mutwhy">similar spelling to “${esc(q)}”</div>`;
+}
 
 let lastList=[];
 function render(){
@@ -703,7 +814,7 @@ function rowHTML(m,q){
   const fam=famOf(m.group_code).length-1;
   return `<div class="lrow" onclick="openDetail('${m.membid}')">
     <div class="avatar sm" style="background:${avatarColor(m.group_code)};font-size:${avFont(m.group_code,12)}px;letter-spacing:0">${esc(m.group_code)}</div>
-    <div class="lmain"><div class="lname">${hl(m.name,q)}</div><div class="lsub">${esc(m.group_name)}${fam>0?' · +'+fam+' more':''}</div></div>
+    <div class="lmain"><div class="lname">${hl(m.name,q)}</div><div class="lsub">${esc(m.group_name)}${fam>0?' · +'+fam+' more':''}</div>${whyMatch(m,q)}</div>
     <div class="lcell mono">${m.mobile?hl(m.mobile,q):'<span style="color:var(--muted)">—</span>'}</div>
     <div class="lcell area">${m.resi_pin?esc(m.resi_pin):''}</div>
     <div class="lchev">${icon('chev',16)}</div>
@@ -721,6 +832,7 @@ function cardHTML(m,q){
       ${m.mobile?`<div class="krow"><span class="ic">${icon('phone',15)}</span>${hl(m.mobile,q)}</div>`:`<div class="krow mut"><span class="ic">${icon('phone',15)}</span>No mobile on file</div>`}
       ${(m.emails&&m.emails.length)?`<div class="krow"><span class="ic">${icon('mail',15)}</span>${hl(m.emails[0],q)}</div>`:`<div class="krow mut"><span class="ic">${icon('mail',15)}</span>No email on file</div>`}
       ${m.resi_pin?`<div class="krow mut"><span class="ic">${icon('pin',15)}</span>Pin ${esc(m.resi_pin)}</div>`:''}
+      ${whyMatch(m,q)}
     </div></div></div>`;
 }
 
@@ -839,7 +951,7 @@ function diffMember(b,a){const out=[];
 function renderActivity(){
   actAll().then(a=>{
     a.sort((x,y)=>y.ts-x.ts);
-    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'}};
+    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'},import:{i:'download',c:'create',t:'Imported product data'}};
     const q=norm((document.getElementById('actSearch')||{}).value||'').trim();
     const terms=q.split(/\s+/).filter(Boolean);
     const list=terms.length?a.filter(e=>{const v=AV[e.action]||{t:e.action};return terms.every(w=>norm([e.name,v.t,e.by,e.detail,e.action,fmtDateTime(e.ts)].join(' ')).includes(w));}):a;
@@ -1063,7 +1175,7 @@ async function loadAccess(){
   }catch(e){ /* non-admins can't read the access doc — that's fine */ }
   inviteName=null;
 }
-function updateAdminUI(){ document.querySelectorAll('[data-v="settings"]').forEach(el=>el.style.display=isAdmin?'':'none'); }
+function updateAdminUI(){ document.querySelectorAll('[data-v="settings"]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; }
 /* ===== Admin: users, invites ===== */
 function renderSettings(){
   const p=document.getElementById('settingsPanel'); if(!p)return;
@@ -1182,6 +1294,10 @@ function subscribeCloud(){
   fdb.collection('activity').orderBy('ts','desc').limit(200).onSnapshot(snap=>{
     cloudAct=snap.docs.map(d=>d.data());
     if(view==='activity')renderActivity(); if(view==='dashboard')renderDashboard();
+  }, err=>{});
+  fdb.collection('holdings').onSnapshot(snap=>{
+    HOLD={}; snap.docs.forEach(d=>{HOLD[d.id]=d.data();});
+    if(view==='crosssell')renderCross();
   }, err=>{});
 }
 async function cloudSave(m,isNew,detail){
@@ -1422,17 +1538,224 @@ function copyNumbers(){
 function fallbackCopy(txt,n){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied '+n+' numbers','ok');}catch(e){toast('Copy failed','warn');}ta.remove();}
 
 /* ---------- export ---------- */
-function exportExcel(subset){
-  const data=subset?lastList:MEMBERS;
-  const cols=['membid','group_code','group_name','name','dob','age','mobile','alt_mobile','business_mobile','emails','resi_address','resi_pin','offi_address','offi_pin','pref_comm'];
-  const head=['Member ID','Group Code','Group Name','Member Name','DOB','Age','Mobile','Alternate','Business Mobile','Emails','Residence Address','Resi Pin','Office Address','Offi Pin','Preferred'];
-  const rows=[head].concat(data.map(m=>cols.map(c=>{let v=m[c];if(Array.isArray(v))v=v.join(' ; ');return v==null?'':v;})));
-  const csv='﻿'+rows.map(r=>r.map(c=>{const s=(''+c).replace(/"/g,'""');return /[",\n]/.test(s)?`"${s}"`:s;}).join(',')).join('\r\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='MSFPS_'+(subset?'Selection_':'Directory_')+new Date().toISOString().slice(0,10)+'.csv';
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-  try{ logAct({action:'export',name:(subset?'Filtered selection':'Full directory'),detail:data.length+' members downloaded as CSV'}).catch(()=>{}); }catch(e){}
-  toast('Exported '+data.length+' members to Excel','ok');
+/* ===== Cross-sell: local holdings store (used only in no-Firebase builds) ===== */
+function holdDB(){return new Promise((res,rej)=>{const r=indexedDB.open('msfps_holdings',1);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('h'))d.createObjectStore('h',{keyPath:'membid'});};r.onsuccess=e=>res(e.target.result);r.onerror=rej;});}
+async function loadHoldLocal(){try{const d=await holdDB();const rq=d.transaction('h','readonly').objectStore('h').getAll();rq.onsuccess=()=>{HOLD={};(rq.result||[]).forEach(x=>{HOLD[String(x.membid)]=x;});if(view==='crosssell')renderCross();};}catch(e){}}
+async function saveHoldLocal(recs){try{const d=await holdDB();const s=d.transaction('h','readwrite').objectStore('h');recs.forEach(r=>s.put(r));return new Promise(r=>{s.transaction.oncomplete=()=>r();});}catch(e){}}
+
+/* ===== Cross-sell tab ===== */
+function csUniverse(){
+  if(csStatus==='nodata') return MEMBERS.filter(m=>!holdOf(m));
+  let base=MEMBERS.filter(m=>holdOf(m));
+  if(csStatus==='active') base=base.filter(m=>(holdOf(m)||{}).status==='active');
+  if(csStatus==='inactive') base=base.filter(m=>(holdOf(m)||{}).status==='inactive');
+  return base;
+}
+function renderCross(){
+  csRenderDash(); csRenderPills(); csRenderStatus(); csRenderPresets();
+  const q=norm((document.getElementById('csSearch')||{}).value||'').trim();const qd=digits(q);
+  const aprod=activeProducts();
+  let list=csUniverse().filter(m=>{
+    const p=((holdOf(m)||{}).products)||{};
+    for(const k of csHolds) if(!p[k]) return false;
+    for(const k of csMiss) if(p[k]) return false;
+    if(csSpecial==='single'){ if(aprod.filter(x=>p[x.k]).length!==1) return false; }
+    if(q){ const hay=norm(m.name)+' '+norm(m.group_code)+' '+norm(m.group_name)+' '+digits(m.mobile); if(!hay.includes(q)&&!(qd&&digits(m.mobile).includes(qd))) return false; }
+    return true;
+  });
+  list=sortName(list); csLast=list;
+  const parts=[];
+  if(csHolds.size)parts.push('holds '+[...csHolds].map(k=>PKEY[k].label).join(' + '));
+  if(csMiss.size)parts.push('missing '+[...csMiss].map(k=>PKEY[k].label).join(' + '));
+  if(csSpecial==='single')parts.push('only 1 product');
+  document.getElementById('csSum').innerHTML=`<b>${list.length}</b> client${list.length!==1?'s':''}`+(parts.length?' — '+esc(parts.join(', ')):'')+(csStatus!=='all'?' · '+esc(csStatus==='nodata'?'no data yet':csStatus):'');
+  const res=document.getElementById('csResults');
+  if(!list.length){res.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big" style="color:var(--muted)">${icon('search',36)}</div>${Object.keys(HOLD).length?'No clients match this combination.':'No product data yet. '+(isAdmin?'Tap <b>Import / refresh</b> to load your Active & Inactive files.':'Ask Monish to import the product files.')}</div>`;return;}
+  res.innerHTML=list.slice(0,300).map(csCard).join('')+(list.length>300?`<div class="empty" style="grid-column:1/-1;padding:16px">Showing first 300 of ${list.length}. Narrow with filters.</div>`:'');
+}
+function csCard(m){
+  const h=holdOf(m)||{};const p=h.products||{};const aprod=activeProducts();
+  const held=aprod.filter(x=>p[x.k]), gaps=aprod.filter(x=>!p[x.k]);
+  const mob=m.mobile?firstPhone(m.mobile):'';
+  return `<div class="card"><div style="display:flex;gap:11px;align-items:flex-start">
+    <div class="avatar" style="background:${avatarColor(m.group_code)};font-size:${avFont(m.group_code,15)}px;letter-spacing:0">${esc(m.group_code)}</div>
+    <div style="flex:1;min-width:0">
+      <div class="nm" style="cursor:pointer" onclick="openDetail('${m.membid}')">${esc(m.name)}${h.status?`<span class="tag ${h.status==='active'?'has':'miss'}" style="margin-left:6px">${esc(h.status)}</span>`:''}</div>
+      <div class="fam"><b>${esc(m.group_name)}</b> · ${esc(m.group_code)}</div>
+      <div class="csgaps">${held.length?held.map(x=>`<span class="chold">✓ ${esc(x.label)}</span>`).join(''):'<span class="cmiss">no products on file</span>'}</div>
+      ${gaps.length?`<div class="csgaps">${gaps.map(x=>`<span class="cmiss">+ ${esc(x.label)}</span>`).join('')}</div>`:''}
+      <div class="callrow" style="margin-top:8px">${mob?`<a href="tel:${mob}">${icon('phone',15)} Call</a><a href="https://wa.me/91${mob}" target="_blank" rel="noopener">${icon('message',15)} WhatsApp</a>`:'<span class="krow mut" style="padding:0 4px">No mobile</span>'}${(m.emails&&m.emails.length)?`<a href="mailto:${esc(m.emails[0])}">${icon('mail',15)} Email</a>`:''}${isAdmin?`<a href="javascript:void(0)" onclick="csEditProducts('${m.membid}')">${icon('edit',15)} Products</a>`:''}</div>
+    </div></div></div>`;
+}
+function csRenderPills(){
+  const mk=(id,set,cls)=>{const el=document.getElementById(id);if(el)el.innerHTML=activeProducts().map(p=>`<button class="cspill ${set.has(p.k)?cls:''}" onclick="csTogglePill('${id}','${p.k}')">${esc(p.label)}</button>`).join('');};
+  mk('csHoldPills',csHolds,'on-has'); mk('csMissPills',csMiss,'on-miss');
+}
+function csTogglePill(id,k){
+  csSpecial=null;
+  if(id==='csHoldPills'){ if(csHolds.has(k))csHolds.delete(k); else {csHolds.add(k);csMiss.delete(k);} }
+  else { if(csMiss.has(k))csMiss.delete(k); else {csMiss.add(k);csHolds.delete(k);} }
+  renderCross();
+}
+function csRenderStatus(){
+  const opts=[['all','All clients'],['active','Active'],['inactive','Inactive'],['nodata','No data yet']];
+  const el=document.getElementById('csStatusPills');if(el)el.innerHTML=opts.map(([v,l])=>`<button class="cspill ${csStatus===v?'on-has':''}" onclick="csSetStatus('${v}')">${l}</button>`).join('');
+}
+function csSetStatus(v){csStatus=v;renderCross();}
+function csToggleAll(b){csShowAll=b;renderCross();}
+function csClear(){csHolds.clear();csMiss.clear();csSpecial=null;csStatus='all';const s=document.getElementById('csSearch');if(s)s.value='';renderCross();}
+function csPreset(id){
+  csHolds=new Set();csMiss=new Set();csSpecial=null;csStatus='all';
+  if(id==='life_no_mf'){csHolds.add('life');csMiss.add('mf');}
+  else if(id==='health_no_mf'){csHolds.add('health');csMiss.add('mf');}
+  else if(id==='life_no_health'){csHolds.add('life');csMiss.add('health');}
+  else if(id==='health_no_life'){csHolds.add('health');csMiss.add('life');}
+  else if(id==='hasmf'){csHolds.add('mf');}
+  else if(id==='single'){csSpecial='single';}
+  renderCross();
+}
+function csRenderPresets(){
+  const P=[['life_no_mf','Life · no Mutual Fund'],['health_no_mf','Health · no Mutual Fund'],['life_no_health','Life · no Health'],['health_no_life','Health · no Life'],['single','Only 1 product'],['hasmf','Has Mutual Fund']];
+  const el=document.getElementById('csPresets');if(el)el.innerHTML='<span class="cslbl" style="align-self:center">Quick</span>'+P.map(([id,l])=>`<button onclick="csPreset('${id}')">${esc(l)}</button>`).join('');
+}
+function csRenderDash(){
+  const mapped=MEMBERS.filter(m=>holdOf(m));
+  const act=mapped.filter(m=>(holdOf(m)||{}).status==='active').length;
+  const nodata=MEMBERS.length-mapped.length;const aprod=activeProducts();
+  const single=mapped.filter(m=>{const p=(holdOf(m)||{}).products||{};return aprod.filter(x=>p[x.k]).length===1;}).length;
+  let html=`<div class="cskpi">
+    <div class="k"><div class="n">${mapped.length}</div><div class="l">clients with product data</div></div>
+    <div class="k"><div class="n">${act}</div><div class="l">active</div></div>
+    <div class="k"><div class="n">${single}</div><div class="l">hold only 1 product</div></div>
+    <div class="k"><div class="n">${nodata}</div><div class="l">no data yet</div></div></div>`;
+  const denom=mapped.length||1;
+  html+=`<div class="panel" style="margin-bottom:12px"><h3><span style="color:var(--brand2)">${icon('chip',16)}</span> Product penetration <span class="pill">${mapped.length} clients</span></h3>`;
+  aprod.forEach(x=>{const n=mapped.filter(m=>((holdOf(m)||{}).products||{})[x.k]).length;const pct=Math.round(n/denom*100);
+    html+=`<div class="pen"><div class="pl">${esc(x.label)}</div><div class="pt"><div class="pf" style="width:${pct}%;background:${pcolor(x.k)}"></div></div><div class="pv">${n} · ${pct}%</div></div>`;});
+  html+=`</div>`;
+  const el=document.getElementById('csDash');if(el)el.innerHTML=html;
+}
+function csCopyNumbers(){const nums=csLast.map(m=>firstPhone(m.mobile)).filter(Boolean);if(!nums.length){toast('No mobile numbers in this list','warn');return;}copyText(nums.join(', '));toast('Copied '+nums.length+' numbers','ok');}
+function csEditProducts(id){
+  if(!isAdmin)return;const m=MEMBERS.find(x=>String(x.membid)===String(id));if(!m)return;
+  const h=holdOf(m)||{products:{},status:'active'};const p=h.products||{};
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Products — ${esc(m.name)}</h2><div class="sub">${esc(m.group_code)} · ${esc(m.group_name)}</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
+  <div class="sbody">
+    <div class="field"><label>Status</label><select id="cp_status" class="authinput"><option value="active"${h.status!=='inactive'?' selected':''}>Active</option><option value="inactive"${h.status==='inactive'?' selected':''}>Inactive</option></select></div>
+    <div class="field"><label>Products held — tap to toggle</label><div class="csbar" id="cp_pills">${PRODUCTS.map(pr=>`<button type="button" class="cspill ${p[pr.k]?'on-has':''}" data-k="${pr.k}" onclick="this.classList.toggle('on-has')">${esc(pr.label)}</button>`).join('')}</div></div>
+  </div>
+  <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="csSaveProducts('${id}')">${icon('check',16)} Save</button></div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+async function csSaveProducts(id){
+  const m=MEMBERS.find(x=>String(x.membid)===String(id));if(!m)return;
+  const prods={};document.querySelectorAll('#cp_pills .cspill').forEach(b=>{if(b.classList.contains('on-has'))prods[b.dataset.k]=true;});
+  const status=document.getElementById('cp_status').value;
+  const rec={membid:String(id),name:m.name,group_code:m.group_code,products:prods,status,src:'manual',updated:Date.now()};
+  try{
+    if(CLOUD){await fdb.collection('holdings').doc(String(id)).set(rec);} else {await saveHoldLocal([rec]);}
+    HOLD[String(id)]=rec; closeSheet(); renderCross(); toast('Products saved ✓','ok');
+    logAct({action:'edit',membid:String(id),name:m.name,detail:'Products updated: '+(Object.keys(prods).map(k=>PKEY[k]?PKEY[k].label:k).join(', ')||'none')}).catch(()=>{});
+  }catch(e){toast('Could not save: '+(e.code||e.message),'warn');}
+}
+/* ---- import from the two .xls files ---- */
+function openHoldingsImport(){
+  if(!isAdmin){toast('Admins only','warn');return;}
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Import product data</h2><div class="sub">Upload the Active & Inactive customer files</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
+  <div class="sbody">
+    <div class="field"><label>Active customers file (.xls / .xlsx)</label><input type="file" id="imp_active" accept=".xls,.xlsx" class="authinput"></div>
+    <div class="field"><label>Inactive customers file (optional)</label><input type="file" id="imp_inactive" accept=".xls,.xlsx" class="authinput"></div>
+    <div class="hint">Matched to your directory by Group Code + Name. Rows that don't match a client (e.g. nominees) are ignored. This replaces current product data.</div>
+    <div id="imp_out" style="margin-top:10px"></div>
+  </div>
+  <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button><button class="btn btn-primary" id="imp_go" onclick="runHoldingsImport()">${icon('check',16)} Import</button></div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+async function parseHoldFile(file,status){
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(new Uint8Array(buf),{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+  return rows.map(r=>{
+    const low={};Object.keys(r).forEach(k=>low[String(k).toLowerCase().trim()]=r[k]);
+    const gc=String(low['group code']||'').trim(), nm=String(low['customer name']||'').trim();
+    const prods={};
+    PRODUCTS.forEach(pr=>{for(const c of pr.cols){const hk=Object.keys(low).find(h=>h.indexOf(c)>=0);if(hk&&String(low[hk]).trim().toLowerCase()==='yes'){prods[pr.k]=true;break;}}});
+    return {gc,nm,prods,status};
+  }).filter(r=>r.gc&&r.nm);
+}
+async function runHoldingsImport(){
+  const btn=document.getElementById('imp_go'),out=document.getElementById('imp_out');
+  const fa=(document.getElementById('imp_active').files||[])[0], fi=(document.getElementById('imp_inactive').files||[])[0];
+  if(!fa&&!fi){out.innerHTML='<div class="autherr" style="display:block">Choose at least one file.</div>';return;}
+  btn.disabled=true;btn.textContent='Loading reader…';
+  try{ if(typeof XLSX==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'); if(typeof XLSX==='undefined') throw new Error('x'); }
+  catch(e){ out.innerHTML='<div class="autherr" style="display:block">Could not load the Excel reader — needs internet. Try again online.</div>';btn.disabled=false;btn.textContent='Import';return; }
+  let rows=[];
+  try{ if(fa)rows=rows.concat(await parseHoldFile(fa,'active')); if(fi)rows=rows.concat(await parseHoldFile(fi,'inactive')); }
+  catch(e){ out.innerHTML='<div class="autherr" style="display:block">Could not read the file: '+esc(e.message||e)+'</div>';btn.disabled=false;btn.textContent='Import';return; }
+  const byKey={};MEMBERS.forEach(m=>{byKey[csKey(m.group_code,m.name)]=m;});
+  const recs=[],unmatched=[];let matched=0;
+  rows.forEach(r=>{const m=byKey[csKey(r.gc,r.nm)];
+    if(m){matched++;recs.push({membid:String(m.membid),name:m.name,group_code:m.group_code,products:r.prods,status:r.status,src:'import',updated:Date.now()});}
+    else unmatched.push(r);});
+  btn.textContent='Saving…';
+  try{
+    if(CLOUD){ for(let i=0;i<recs.length;i+=400){const b=fdb.batch();recs.slice(i,i+400).forEach(x=>b.set(fdb.collection('holdings').doc(x.membid),x));await b.commit();btn.textContent='Saving… '+Math.min(i+400,recs.length)+'/'+recs.length;} }
+    else { await saveHoldLocal(recs); }
+    recs.forEach(x=>HOLD[x.membid]=x);
+  }catch(e){ out.innerHTML='<div class="autherr" style="display:block">Save failed: '+esc(e.code||e.message)+'</div>';btn.disabled=false;btn.textContent='Import';return; }
+  logAct({action:'import',name:'Product data import',detail:matched+' clients updated · '+unmatched.length+' non-client rows ignored'}).catch(()=>{});
+  const recon=unmatched.length?`<div class="recon"><b>${unmatched.length} rows didn't match a client (ignored — likely nominees):</b>${unmatched.slice(0,60).map(r=>`<div class="ri"><span>${esc(r.nm)}</span><span class="dupsub">${esc(r.gc)}</span></div>`).join('')}${unmatched.length>60?`<div class="ri">…and ${unmatched.length-60} more</div>`:''}</div>`:'';
+  out.innerHTML=`<div class="importbanner" style="display:block"><b>Done ✓</b> ${matched} clients updated. ${unmatched.length} non-client rows ignored.</div>${recon}`;
+  btn.disabled=false;btn.textContent='Import again'; renderCross();
+}
+/* ===== Styled Excel exports (ExcelJS when online, CSV fallback) ===== */
+function dlBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);}
+function csvFallback(headers,rows,name){const all=[headers].concat(rows);const csv='﻿'+all.map(r=>r.map(c=>{const s=(c==null?'':''+c).replace(/"/g,'""');return /[",\n]/.test(s)?'"'+s+'"':s;}).join(',')).join('\r\n');dlBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),name.replace(/\.xlsx$/,'.csv'));}
+async function ensureExcelJS(){ if(typeof ExcelJS!=='undefined')return true; try{ await loadScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'); return typeof ExcelJS!=='undefined'; }catch(e){ return false; } }
+async function styledExport(opts){
+  const ok=await ensureExcelJS();
+  if(!ok){ const s=opts.sheets[0]; csvFallback(s.headers.map(h=>h.label),s.rows,opts.file); toast('Exported as CSV (offline)','ok'); return; }
+  const wb=new ExcelJS.Workbook();
+  opts.sheets.forEach(sh=>{
+    const ws=wb.addWorksheet(sh.name,{views:[{state:'frozen',ySplit:1}]});
+    ws.columns=sh.headers.map(h=>({header:h.label,width:h.width||18}));
+    const hr=ws.getRow(1);hr.font={bold:true,color:{argb:'FFFFFFFF'}};hr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0071E3'}};hr.alignment={vertical:'middle'};hr.height=20;
+    sh.rows.forEach((r,i)=>{const row=ws.addRow(r);if(i%2===1)row.eachCell({includeEmpty:true},c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF3F6FB'}};});if(sh.cellFmt)sh.cellFmt(row,r,i);});
+    ws.autoFilter={from:{row:1,column:1},to:{row:1,column:sh.headers.length}};
+  });
+  const buf=await wb.xlsx.writeBuffer();
+  dlBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),opts.file);
+  toast('Exported to Excel ✓','ok');
+}
+async function exportExcel(subset){
+  const src=subset?(lastList||[]):sortName(MEMBERS);
+  const headers=[{label:'Member ID',width:12},{label:'Group',width:9},{label:'Group Name',width:22},{label:'Name',width:24},{label:'DOB',width:12},{label:'Age',width:6},{label:'Mobile',width:16},{label:'Alternate',width:14},{label:'Emails',width:30},{label:'Residence',width:36},{label:'Pin',width:8},{label:'Office',width:28},{label:'Preferred',width:12}];
+  const rows=src.map(m=>[m.membid,m.group_code,m.group_name,m.name,m.dob?fmtDate(m.dob):'',(m.age==null?'':m.age),m.mobile||'',m.alt_mobile||'',(m.emails||[]).join(' ; '),m.resi_address||'',m.resi_pin||'',m.offi_address||'',m.pref_comm||'']);
+  await styledExport({file:'MSFPS_Members_'+today()+'.xlsx',sheets:[{name:'Members',headers,rows,cellFmt:(row,r)=>{if(!r[6])row.getCell(7).font={color:{argb:'FFC0392B'}};if(!r[8])row.getCell(9).font={color:{argb:'FFC0392B'}};}}]});
+  logAct({action:'export',name:'Members'+(subset?' (filtered)':''),detail:rows.length+' members to Excel'}).catch(()=>{});
+}
+async function exportGroups(){
+  const fams=familyList().sort((a,b)=>a.name.localeCompare(b.name));
+  const summary=fams.map(f=>[f.code,f.name,f.members.length]);
+  const members=[];fams.forEach(f=>{sortName(f.members).forEach(m=>members.push([f.code,f.name,m.name,(m.age==null?'':m.age),m.mobile||'',(m.emails||[]).join(' ; '),m.resi_pin||'']));});
+  await styledExport({file:'MSFPS_Groups_'+today()+'.xlsx',sheets:[
+    {name:'Groups',headers:[{label:'Group',width:10},{label:'Group Name',width:28},{label:'Members',width:10}],rows:summary},
+    {name:'Members by group',headers:[{label:'Group',width:10},{label:'Group Name',width:24},{label:'Member',width:24},{label:'Age',width:6},{label:'Mobile',width:16},{label:'Emails',width:30},{label:'Pin',width:8}],rows:members}
+  ]});
+  logAct({action:'export',name:'Groups',detail:fams.length+' groups to Excel'}).catch(()=>{});
+}
+async function exportCross(){
+  const list=csLast||[];if(!list.length){toast('Nothing to export — adjust the filter first','warn');return;}
+  const aprod=activeProducts();
+  const headers=[{label:'Group',width:9},{label:'Name',width:24},{label:'Status',width:10},{label:'Mobile',width:16},{label:'Email',width:28}].concat(aprod.map(p=>({label:p.label,width:13}))).concat([{label:'Gaps (to pitch)',width:42}]);
+  const rows=list.map(m=>{const p=(holdOf(m)||{}).products||{};const base=[m.group_code,m.name,(holdOf(m)||{}).status||'',m.mobile||'',((m.emails||[])[0]||'')];const pc=aprod.map(x=>p[x.k]?'Yes':'No');const gaps=aprod.filter(x=>!p[x.k]).map(x=>x.label).join(', ');return base.concat(pc,[gaps]);});
+  await styledExport({file:'MSFPS_CrossSell_'+today()+'.xlsx',sheets:[{name:'Cross-sell',headers,rows,cellFmt:(row,r)=>{aprod.forEach((x,idx)=>{const c=row.getCell(6+idx);if(c.value==='Yes'){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE7F7EC'}};c.font={color:{argb:'FF1A7F37'},bold:true};}else{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFDECEB'}};c.font={color:{argb:'FFC0392B'}};}});}}]});
+  const parts=[];if(csHolds.size)parts.push('Holds '+[...csHolds].map(k=>PKEY[k].label).join('+'));if(csMiss.size)parts.push('Missing '+[...csMiss].map(k=>PKEY[k].label).join('+'));if(csSpecial==='single')parts.push('Only 1 product');
+  logAct({action:'export',name:'Cross-sell'+(parts.length?' ('+parts.join(' · ')+')':''),detail:rows.length+' clients to Excel'}).catch(()=>{});
 }
 
 /* ---------- copy to clipboard ---------- */
