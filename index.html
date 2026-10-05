@@ -1177,12 +1177,16 @@ async function loadAccess(){
   try{
     const d=await fdb.doc('meta/access').get();
     if(d.exists){ accessDoc=d.data()||accessDoc; }
-    else if(isAdmin){ accessDoc={emails:TEAM.map(t=>t.email),users:TEAM.map(t=>({name:t.name,email:t.email})),admins:['monish@msfps.in']}; await fdb.doc('meta/access').set(accessDoc); }
+    else if(isAdmin){ accessDoc={emails:TEAM.map(t=>t.email),users:TEAM.map(t=>({name:t.name,email:t.email})),admins:['monish@msfps.in']}; await saveAccess(accessDoc); }
     isAdmin = isAdmin || ((accessDoc.admins||[]).includes(me.email));
     const um=(accessDoc.users||[]).find(x=>x.email===me.email); if(um&&um.name&&!inviteName)me.name=um.name;
   }catch(e){ /* non-admins can't read the access doc — that's fine */ }
   inviteName=null;
 }
+/* writes the access doc (admin-only) AND a public roster of allowed emails (readable by all, so a removed user is signed out instantly) */
+async function saveAccess(doc){ await fdb.doc('meta/access').set(doc); try{ await fdb.doc('meta/roster').set({emails:(doc.emails||[]),ts:Date.now()}); }catch(e){} }
+let _revoked=false;
+function accessRevoked(){ if(_revoked)return; _revoked=true; try{ fbAuth.signOut(); }catch(e){} }
 function updateAdminUI(){ document.querySelectorAll('[data-v="settings"]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; }
 /* ===== Admin: users, invites ===== */
 function renderSettings(){
@@ -1208,6 +1212,7 @@ function renderSettings(){
     <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
     <div id="su_invite" style="margin-top:14px"></div>
     <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that opens the app on their device. For members you add here, the link also signs them in automatically — share those privately (WhatsApp DM), never in a group, since anyone with the link can sign in as them. For the original team, the link fills in their name and they type their own passkey once.</div>
+    <button class="btn btn-danger btn-sm" style="margin-top:12px" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>
     <h3 style="margin-top:24px"><span style="color:var(--brand2)">${icon('download',16)}</span> Directory data</h3>
     <div class="hint" style="margin:4px 0 10px">Refresh the whole Members &amp; Groups directory from your WealthMagic customer export. A backup downloads first, you review a preview, and cross-sell stays linked.</div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openDirSync()">${icon('download',16)} Update directory from CRM</button>`;
@@ -1228,7 +1233,7 @@ async function adminAddUser(){
     const users=(accessDoc.users||[]).filter(u=>u.email!==email); users.push({name,email,key:pass});
     const emails=[...new Set([...(accessDoc.emails||[]),email])];
     accessDoc=Object.assign({},accessDoc,{users,emails,admins:accessDoc.admins||['monish@msfps.in']});
-    await fdb.doc('meta/access').set(accessDoc);
+    await saveAccess(accessDoc);
     renderSettings();
     const link=inviteLinkFor(email);
     document.getElementById('su_invite').innerHTML=`<div class="importbanner"><span>Invite ready for <b>${esc(name)}</b>.</span> <button class="btn btn-primary btn-sm" onclick="copyInvite('${esc(email)}')">${icon('copy',14)} Copy invite link</button></div>`;
@@ -1243,8 +1248,16 @@ async function removeUser(email){
   const users=(accessDoc.users||[]).filter(u=>u.email!==email);
   const emails=(accessDoc.emails||[]).filter(e=>e!==email);
   accessDoc=Object.assign({},accessDoc,{users,emails});
-  try{ await fdb.doc('meta/access').set(accessDoc); renderSettings(); toast('Member removed','ok'); }
+  try{ await saveAccess(accessDoc); renderSettings(); toast('Member removed','ok'); }
   catch(e){ toast('Could not remove: '+(e.code||e.message),'warn'); }
+}
+async function resetToMonishOnly(){
+  const ok=await askConfirm({title:'Remove all staff',msg:'Remove <b>everyone except Monish</b> and sign them out on every device? You can re-add staff fresh afterwards.',danger:true,okLabel:'Remove all'});
+  if(!ok)return;
+  const mon=(accessDoc.users||[]).find(u=>u.email==='monish@msfps.in')||{name:'Monish',email:'monish@msfps.in'};
+  accessDoc=Object.assign({},accessDoc,{users:[mon],emails:['monish@msfps.in'],admins:['monish@msfps.in']});
+  try{ await saveAccess(accessDoc); renderSettings(); toast('Done — only Monish remains; everyone else is signed out.','ok'); }
+  catch(e){ toast('Could not reset: '+(e.code||e.message),'warn'); }
 }
 async function adminResetKey(email){
   const ok=await askConfirm({title:'Reset passkey',msg:`Email a secure reset link to <b>${esc(email)}</b>? They open the email and set a brand-new passkey themselves.`,okLabel:'Send reset link'});
@@ -1258,7 +1271,7 @@ async function adminSetRole(email,makeAdmin){
   else { const ok=await askConfirm({title:'Remove admin',msg:`Remove admin access from <b>${esc(email)}</b>? They stay a regular member.`,danger:true,okLabel:'Remove admin'}); if(!ok)return; }
   const set=new Set(accessDoc.admins||['monish@msfps.in']); if(makeAdmin)set.add(email); else set.delete(email); set.add('monish@msfps.in');
   accessDoc=Object.assign({},accessDoc,{admins:[...set]});
-  try{ await fdb.doc('meta/access').set(accessDoc); renderSettings(); toast(makeAdmin?'Now an admin ✓':'Admin access removed','ok'); }
+  try{ await saveAccess(accessDoc); renderSettings(); toast(makeAdmin?'Now an admin ✓':'Admin access removed','ok'); }
   catch(e){ toast('Could not update: '+(e.code||e.message),'warn'); }
 }
 async function forgotKey(){
@@ -1314,6 +1327,11 @@ function subscribeCloud(){
     UNMAPPED={}; snap.docs.forEach(d=>{UNMAPPED[d.id]=d.data();});
     refreshUnmappedUI();
   }, err=>{});
+  // Live roster: if this user is removed from the approved list, sign them out instantly
+  fdb.doc('meta/roster').onSnapshot(snap=>{
+    if(!me || me.email==='monish@msfps.in') return;
+    if(snap.exists){ const em=(snap.data()||{}).emails||[]; if(!em.includes(me.email)) accessRevoked(); }
+  }, err=>{});
 }
 async function cloudSave(m,isNew,detail){
   await fdb.collection('members').doc(String(m.membid)).set(JSON.parse(JSON.stringify(m)));
@@ -1356,6 +1374,7 @@ function showAuthGate(mode){
   if(f)f.style.display=mode==='login'?'block':'none';
   if(mode==='login'&&prefillName){ const ni=document.getElementById('authName'); if(ni&&!ni.value){ ni.value=prefillName; setTimeout(()=>{const pw=document.getElementById('authPass'); if(pw)pw.focus();},60); } }
   const e=document.getElementById('authErr'); if(e&&mode==='login')e.style.display='none';
+  if(mode==='login'&&_revoked){ _revoked=false; const er=document.getElementById('authErr'); if(er){ er.style.display='block'; er.style.color='var(--danger)'; er.textContent='Your access was removed by the admin. Contact Monish.'; } }
 }
 function hideAuthGate(){ const g=document.getElementById('authgate'); if(g)g.style.display='none'; }
 function showAuthError(msg){
