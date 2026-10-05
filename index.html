@@ -1207,7 +1207,10 @@ function renderSettings(){
     <div class="autherr" id="su_err" style="display:none"></div>
     <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
     <div id="su_invite" style="margin-top:14px"></div>
-    <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that opens the app on their device. For members you add here, the link also signs them in automatically — share those privately (WhatsApp DM), never in a group, since anyone with the link can sign in as them. For the original team, the link fills in their name and they type their own passkey once.</div>`;
+    <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that opens the app on their device. For members you add here, the link also signs them in automatically — share those privately (WhatsApp DM), never in a group, since anyone with the link can sign in as them. For the original team, the link fills in their name and they type their own passkey once.</div>
+    <h3 style="margin-top:24px"><span style="color:var(--brand2)">${icon('download',16)}</span> Directory data</h3>
+    <div class="hint" style="margin:4px 0 10px">Refresh the whole Members &amp; Groups directory from your WealthMagic customer export. A backup downloads first, you review a preview, and cross-sell stays linked.</div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openDirSync()">${icon('download',16)} Update directory from CRM</button>`;
 }
 function suDeriveEmail(){ const n=(document.getElementById('su_name').value||'').trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,''); const e=document.getElementById('su_email'); if(e&&!e.dataset.touched)e.value=n?n+'@msfps.in':''; }
 async function adminAddUser(){
@@ -1844,6 +1847,128 @@ async function exportCross(){
   const has=activeProducts().filter(p=>csState[p.k]==='has').map(p=>p.label), no=activeProducts().filter(p=>csState[p.k]==='no').map(p=>p.label);
   const parts=[];if(has.length)parts.push('Has '+has.join('+'));if(no.length)parts.push('No '+no.join('+'));if(csSpecial==='single')parts.push('Only 1 product');
   logAct({action:'export',name:'Cross-sell'+(parts.length?' ('+parts.join(' · ')+')':''),detail:rows.length+' clients to Excel'}).catch(()=>{});
+}
+
+/* ===== Update directory from CRM (WealthMagic) — admin, one-time/periodic sync ===== */
+function _dobISO(s){s=String(s||'').trim();const m=s.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);if(!m)return '';return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}
+function _ageFrom(iso){if(!iso)return null;const b=new Date(iso+'T00:00'),t=new Date();if(isNaN(b.getTime()))return null;return t.getFullYear()-b.getFullYear()-((t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))?1:0);}
+function _emailsFrom(to,cc){const out=[];[to,cc].forEach(v=>String(v||'').split(/[;,/\s]+/).forEach(e=>{e=e.trim();if(e&&e.indexOf('@')>0&&out.indexOf(e)<0)out.push(e);}));return out;}
+async function parseWM(file){
+  let txt='';
+  try{ txt=await file.text(); }catch(e){ txt=''; }
+  const head0=(txt.split(/\r?\n/)[0]||'').toLowerCase();
+  if(txt && head0.indexOf('gr.code')>=0){
+    const lines=txt.split(/\r?\n/).filter(l=>l.length);
+    const sep=lines[0].indexOf('\t')>=0?'\t':',';
+    const H=lines[0].split(sep).map(h=>h.trim());
+    const ix=n=>H.findIndex(h=>h.toLowerCase()===n.toLowerCase());
+    const C={gc:ix('Gr.Code'),nm:ix('Group Member'),head:ix('Head'),fn:ix('First Name'),mn:ix('Middle Name'),ln:ix('Last Name'),dob:ix('D.O.B(G)'),pan:ix('PAN'),a1:ix('Residential Address1'),a2:ix('Residential Address2'),a3:ix('Residential Address3'),a4:ix('Residential Address4'),city:ix('Resi.City'),pin:ix('Resi.Pin'),state:ix('Resi.State'),ecc:ix('EmailCc'),eto:ix('EmailTo'),m2:ix('Mobile 2'),m1:ix('Mobile 1')};
+    const rows=[];
+    for(let i=1;i<lines.length;i++){const c=lines[i].split(sep);const g=v=>(v>=0&&v<c.length)?String(c[v]).trim():'';
+      const gc=g(C.gc),fn=g(C.fn),ln=g(C.ln);const nm=g(C.nm)||[fn,g(C.mn),ln].filter(Boolean).join(' ');
+      rows.push({gc,nm,fn,ln,head:/true/i.test(g(C.head)),dob:_dobISO(g(C.dob)),pan:g(C.pan),addr:[g(C.a1),g(C.a2),g(C.a3),g(C.a4),g(C.city),g(C.state)].filter(Boolean).join(', '),pin:g(C.pin),emails:_emailsFrom(g(C.eto),g(C.ecc)),m1:g(C.m1),m2:g(C.m2)});}
+    return rows;
+  }
+  // binary .xls/.xlsx fallback via SheetJS
+  if(typeof XLSX==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+  const wb=XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array'});
+  const js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+  return js.map(r=>{const low={};Object.keys(r).forEach(k=>low[String(k).toLowerCase().trim()]=r[k]);const G=n=>String(low[n]||'').trim();
+    const fn=G('first name'),ln=G('last name');const nm=G('group member')||[fn,G('middle name'),ln].filter(Boolean).join(' ');
+    return {gc:G('gr.code'),nm,fn,ln,head:/true/i.test(G('head')),dob:_dobISO(G('d.o.b(g)')||G('d.o.b(r)')||G('dob')),pan:G('pan'),addr:[G('residential address1'),G('residential address2'),G('residential address3'),G('residential address4'),G('resi.city'),G('resi.state')].filter(Boolean).join(', '),pin:G('resi.pin'),emails:_emailsFrom(G('emailto'),G('emailcc')),m1:G('mobile 1'),m2:G('mobile 2')};
+  }).filter(r=>r.nm);
+}
+function buildSyncPlan(rows){
+  const byGFL={},byFL={};
+  MEMBERS.forEach(m=>{const t=norm(m.name).split(/\s+/).filter(Boolean);const f=t[0]||'',l=t[t.length-1]||'';byGFL[String(m.group_code).trim().toUpperCase()+'|'+f+'|'+l]=m;(byFL[f+'|'+l]=byFL[f+'|'+l]||[]).push(m);});
+  const headName={};rows.forEach(r=>{if(r.head&&r.gc)headName[r.gc.toUpperCase()]=r.nm;});
+  const recs=[],plan={update:0,add:0,regroup:0,skipNoGroup:[]},used=new Set();
+  rows.forEach(r=>{
+    if(!r.gc){plan.skipNoGroup.push(r);return;}
+    const gcU=r.gc.toUpperCase();const f=(norm(r.fn).split(' ')[0])||(norm(r.nm).split(' ')[0])||'';const l=norm(r.ln)||(norm(r.nm).split(' ').slice(-1)[0])||'';
+    let m=byGFL[gcU+'|'+f+'|'+l],kind='add';
+    if(m)kind='update'; else {const c=byFL[f+'|'+l];if(c&&c.length===1){m=c[0];kind='regroup';}}
+    let membid;
+    if(m && !used.has(String(m.membid))){membid=String(m.membid);used.add(membid);if(kind==='update')plan.update++;else plan.regroup++;}
+    else{membid='WM'+Date.now().toString(36)+recs.length;used.add(membid);plan.add++;m=null;} // new, or same-name collision → fresh ID (never overwrite)
+    const base=m?JSON.parse(JSON.stringify(m)):{};
+    recs.push(Object.assign(base,{
+      membid,group_code:gcU,group_name:headName[gcU]||(m&&m.group_name)||r.nm,name:r.nm,
+      dob:r.dob||(m&&m.dob)||'',age:(r.dob?_ageFrom(r.dob):(m&&m.age))||null,pan:r.pan||(m&&m.pan)||'',is_head:!!r.head,
+      resi_address:r.addr||(m&&m.resi_address)||'',resi_pin:r.pin||(m&&m.resi_pin)||'',
+      emails:(r.emails&&r.emails.length)?r.emails:((m&&m.emails)||[]),
+      mobile:r.m1||r.m2||(m&&m.mobile)||'',alt_mobile:(r.m1&&r.m2&&r.m1!==r.m2)?r.m2:((m&&m.alt_mobile)||''),
+      _updated:new Date().toISOString()
+    }));
+  });
+  return {recs,plan};
+}
+function backupDirectoryCSV(){
+  const cols=['membid','group_code','group_name','name','dob','age','mobile','alt_mobile','business_mobile','emails','resi_address','resi_pin','resi_tel','offi_address','offi_pin','offi_tel','pref_comm','perscode','pan'];
+  const rows=MEMBERS.map(m=>cols.map(c=>{let v=m[c];if(Array.isArray(v))v=v.join(' ; ');return v==null?'':v;}));
+  csvFallback(cols,rows,'MSFPS_Directory_BACKUP_'+today()+'.csv');
+}
+let _wmRecs=null,_wmPlan=null,_wmReview=null;
+function openDirSync(){
+  if(!isAdmin){toast('Admins only','warn');return;}
+  _wmRecs=null;_wmPlan=null;_wmReview=null;
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Update directory from CRM</h2><div class="sub">WealthMagic customer export</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
+   <div class="sbody">
+     <div class="field"><label>CRM customer file (.xls / .csv)</label><input type="file" id="wm_file" accept=".xls,.xlsx,.csv,.txt,.tsv" class="authinput"></div>
+     <div class="hint">Refreshes name, group, group head, DOB, PAN, residential address, email and mobiles from the CRM. Office address and any extra numbers you added are kept. Each person's internal ID is preserved, so <b>cross-sell stays linked</b>. Nothing is written until you review the preview and press Confirm — and a backup downloads first.</div>
+     <div id="wm_out" style="margin-top:10px"></div>
+   </div>
+   <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button>
+     <button class="btn btn-ghost btn-sm" id="wm_prev" onclick="runDirSyncPreview()">${icon('eye',16)} Preview (optional)</button>
+     <button class="btn btn-primary" id="wm_go" onclick="confirmDirSync()">${icon('check',16)} Backup &amp; update now</button></div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+async function runDirSyncPreview(){
+  const out=document.getElementById('wm_out');const fin=(document.getElementById('wm_file').files||[])[0];
+  if(!fin){out.innerHTML='<div class="autherr" style="display:block">Choose the CRM file first.</div>';return;}
+  const btn=document.getElementById('wm_prev');btn.disabled=true;btn.textContent='Reading…';
+  let rows;
+  try{ rows=await parseWM(fin); }catch(e){ out.innerHTML='<div class="autherr" style="display:block">Could not read file: '+esc(e.message||e)+'</div>';btn.disabled=false;btn.textContent='Preview';return; }
+  if(!rows.length){ out.innerHTML='<div class="autherr" style="display:block">No rows found — is this the WealthMagic customer export?</div>';btn.disabled=false;btn.textContent='Preview';return; }
+  const {recs,plan}=buildSyncPlan(rows);
+  const used=new Set(recs.map(r=>String(r.membid)));
+  const review=MEMBERS.filter(m=>!used.has(String(m.membid)));
+  _wmRecs=recs;_wmPlan=plan;_wmReview=review;
+  const grps=new Set(recs.map(r=>r.group_code)).size;
+  out.innerHTML=`<div class="importbanner" style="display:block"><b>Preview</b> — ${rows.length} people in file → ${recs.length} records across ${grps} groups.</div>
+    <div class="cssum" style="margin-top:8px"><b>${plan.update}</b> updated · <b>${plan.add}</b> new · <b>${plan.regroup}</b> regrouped · <b>${review.length}</b> kept for review${plan.skipNoGroup.length?` · <b>${plan.skipNoGroup.length}</b> no-group → unmapped`:''}</div>
+    ${review.length?`<div class="recon"><b>${review.length} people in your directory are NOT in this file — kept, please review:</b>${review.slice(0,60).map(m=>`<div class="ri"><span>${esc(m.name)}</span><span class="dupsub">${esc(m.group_code)}</span></div>`).join('')}${review.length>60?`<div class="ri">…and ${review.length-60} more</div>`:''}</div>`:''}
+    <div class="hint" style="margin-top:10px">Press <b>Backup &amp; apply</b> to download a backup and update the directory. Cross-sell is untouched.</div>`;
+  btn.disabled=false;btn.textContent='Preview';
+  const g=document.getElementById('wm_go');if(g){g.disabled=false;g.style.opacity='';}
+}
+async function confirmDirSync(){
+  const go=document.getElementById('wm_go');
+  if(!_wmRecs){
+    const fi=document.getElementById('wm_file'); const fin=fi&&fi.files&&fi.files[0];
+    if(!fin){toast('Choose the CRM file first','warn');return;}
+    go.disabled=true;go.textContent='Reading…';
+    try{ const rows=await parseWM(fin); if(!rows.length) throw new Error('no rows found — is this the WealthMagic export?');
+      const bp=buildSyncPlan(rows); _wmRecs=bp.recs; _wmPlan=bp.plan;
+      const used=new Set(_wmRecs.map(r=>String(r.membid))); _wmReview=MEMBERS.filter(m=>!used.has(String(m.membid)));
+    }catch(e){ toast('Could not read file: '+(e.message||e),'warn'); go.disabled=false; go.textContent='Backup & update now'; return; }
+  }
+  go.disabled=true;go.textContent='Backing up…';
+  try{ backupDirectoryCSV(); }catch(e){}
+  go.textContent='Applying…';
+  try{
+    if(CLOUD){
+      for(let i=0;i<_wmRecs.length;i+=400){const b=fdb.batch();_wmRecs.slice(i,i+400).forEach(r=>b.set(fdb.collection('members').doc(String(r.membid)),JSON.parse(JSON.stringify(r))));await b.commit();go.textContent='Applying… '+Math.min(i+400,_wmRecs.length)+'/'+_wmRecs.length;}
+      if(_wmPlan.skipNoGroup&&_wmPlan.skipNoGroup.length){ for(const r of _wmPlan.skipNoGroup){const id=umId('nogroup',r.nm);try{await fdb.collection('unmapped').doc(id).set({id,name:r.nm,group_code:'',products:{},status:'',mobile:r.m1||r.m2||'',email:(r.emails||[])[0]||'',updated:Date.now()});}catch(e){}} }
+    } else {
+      await putAll(_wmRecs);
+      _wmRecs.forEach(r=>{const i=MEMBERS.findIndex(x=>String(x.membid)===String(r.membid));if(i>=0)MEMBERS[i]=r;else MEMBERS.push(r);});
+      afterData();
+    }
+    logAct({action:'import',name:'Directory synced from CRM',detail:_wmPlan.update+' updated, '+_wmPlan.add+' new, '+_wmPlan.regroup+' regrouped, '+(_wmReview?_wmReview.length:0)+' kept for review'}).catch(()=>{});
+    toast('Directory updated ✓','ok'); closeSheet();
+  }catch(e){ toast('Sync failed: '+(e.code||e.message),'warn'); const go2=document.getElementById('wm_go'); if(go2){go2.disabled=false;go2.textContent='Backup & apply';} }
 }
 
 /* ---------- copy to clipboard ---------- */
