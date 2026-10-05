@@ -1139,7 +1139,7 @@ async function initCloud(){
   showAuthGate('loading');
   if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
   // Invite links: ...#u=email&k=passkey&n=name  → auto sign-in, then clear the link
-  try{ const h=new URLSearchParams((location.hash||'').replace(/^#/,'')); if(h.get('u')&&h.get('k')){ pendingInvite={email:decodeURIComponent(h.get('u')).toLowerCase(),pass:decodeURIComponent(h.get('k')),name:h.get('n')?decodeURIComponent(h.get('n')):''}; history.replaceState(null,'',location.pathname+location.search); } else if(h.get('u')){ const em=decodeURIComponent(h.get('u')).toLowerCase(); prefillName=h.get('n')?decodeURIComponent(h.get('n')):em.split('@')[0]; history.replaceState(null,'',location.pathname+location.search); } }catch(e){}
+  try{ const h=new URLSearchParams((location.hash||'').replace(/^#/,'')); if(h.get('n')&&h.get('k')){ pendingInvite={name:decodeURIComponent(h.get('n')),pass:decodeURIComponent(h.get('k'))}; history.replaceState(null,'',location.pathname+location.search); } else if(h.get('n')){ prefillName=decodeURIComponent(h.get('n')); history.replaceState(null,'',location.pathname+location.search); } }catch(e){}
   try{
     const base='https://www.gstatic.com/firebasejs/10.12.5/';
     await loadScript(base+'firebase-app-compat.js');
@@ -1155,9 +1155,7 @@ async function initCloud(){
     let invBusy=false;
     fbAuth.onAuthStateChanged(async u=>{
       if(pendingInvite && !invBusy){
-        const p=pendingInvite;
-        if(u && (u.email||'').toLowerCase()===p.email){ pendingInvite=null; onSignedIn(u); return; } // already the invited person
-        invBusy=true; try{ if(u) await fbAuth.signOut(); }catch(e){} pendingInvite=null; invBusy=false;
+        const p=pendingInvite; invBusy=true; try{ if(u) await fbAuth.signOut(); }catch(e){} pendingInvite=null; invBusy=false;
         autoInvite(p); return;
       }
       if(invBusy) return; // ignore intermediate auth events during an invite switch
@@ -1167,11 +1165,22 @@ async function initCloud(){
   }catch(e){ showAuthError('Setup error: '+(e.message||e)); }
 }
 async function autoInvite(p){
-  showAuthGate('loading'); inviteName=p.name||'';
-  try{ await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); await fbAuth.signInWithEmailAndPassword(p.email,p.pass); }
-  catch(e){ inviteName=null; showAuthGate('login'); const ni=document.getElementById('authName'); if(ni&&p.name)ni.value=p.name; showAuthError('Invite sign-in failed — type your passkey to continue.'); }
+  showAuthGate('loading'); inviteName=p.name||''; loginName=p.name||'';
+  try{ const alias=await aliasForName(p.name||''); await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); await fbAuth.signInWithEmailAndPassword(alias,p.pass); }
+  catch(e){ inviteName=null; loginName=null; showAuthGate('login'); const ni=document.getElementById('authName'); if(ni&&p.name)ni.value=p.name; showAuthError('Invite sign-in failed — type your passkey to continue.'); }
 }
 function getSecApp(){ return (firebase.apps||[]).find(a=>a.name==='sec')||firebase.initializeApp(FB_CONFIG,'sec'); }
+let loginName=null;
+function _slug(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,20); }
+function aliasGen(name){ return (_slug(name)||'user')+'.'+Date.now().toString(36)+Math.floor(Math.random()*46656).toString(36)+'@msfps.in'; }
+async function aliasForName(nm){
+  const key=norm(nm), first=key.split(' ')[0];
+  try{ const d=await fdb.doc('meta/roster').get(); const map=(d.exists&&(d.data()||{}).map)||{};
+    if(map[key])return map[key];
+    for(const k in map){ if(k.split(' ')[0]===first)return map[k]; }
+  }catch(e){}
+  return first.replace(/[^a-z0-9]/g,'')+'@msfps.in'; // legacy fallback (first-name email)
+}
 async function loadAccess(){
   isAdmin=(me.email==='monish@msfps.in');
   try{
@@ -1180,11 +1189,12 @@ async function loadAccess(){
     else if(isAdmin){ accessDoc={emails:TEAM.map(t=>t.email),users:TEAM.map(t=>({name:t.name,email:t.email})),admins:['monish@msfps.in']}; await saveAccess(accessDoc); }
     isAdmin = isAdmin || ((accessDoc.admins||[]).includes(me.email));
     const um=(accessDoc.users||[]).find(x=>x.email===me.email); if(um&&um.name&&!inviteName)me.name=um.name;
+    if(isAdmin){ try{ await saveAccess(accessDoc); }catch(e){} } // keep public roster (name→login map) in sync for name-based login
   }catch(e){ /* non-admins can't read the access doc — that's fine */ }
   inviteName=null;
 }
 /* writes the access doc (admin-only) AND a public roster of allowed emails (readable by all, so a removed user is signed out instantly) */
-async function saveAccess(doc){ await fdb.doc('meta/access').set(doc); try{ await fdb.doc('meta/roster').set({emails:(doc.emails||[]),ts:Date.now()}); }catch(e){} }
+async function saveAccess(doc){ await fdb.doc('meta/access').set(doc); const map={}; (doc.users||[]).forEach(u=>{ if(u.name&&u.email) map[norm(u.name)]=u.email; }); try{ await fdb.doc('meta/roster').set({map,emails:(doc.emails||[]),ts:Date.now()}); }catch(e){} }
 let _revoked=false;
 function accessRevoked(){ if(_revoked)return; _revoked=true; try{ fbAuth.signOut(); }catch(e){} }
 function updateAdminUI(){ document.querySelectorAll('[data-v="settings"]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; }
@@ -1198,15 +1208,14 @@ function renderSettings(){
     <div class="famlist" style="margin:6px 0 20px">${users.map(u=>`<div class="famitem" style="justify-content:space-between;cursor:default">
       <div style="min-width:0"><b>${esc(u.name||u.email)}</b>${admins.includes(u.email)?' <span class="smartchip">admin</span>':''}<div class="dupsub">${esc(u.email)}</div></div>
       <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
-        <button class="btn btn-ghost btn-sm" onclick="adminResetKey('${esc(u.email)}')" title="Email a passkey reset link">${icon('mail',14)} Reset</button>
+        <button class="btn btn-ghost btn-sm" onclick="adminResetKey('${esc(u.email)}')" title="Set a new passkey">${icon('shield',14)} Reset passkey</button>
         ${u.email!==(me&&me.email)?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}
         ${u.email!=='monish@msfps.in'?`<button class="btn btn-ghost btn-sm" onclick="adminSetRole('${esc(u.email)}',${admins.includes(u.email)?'false':'true'})">${admins.includes(u.email)?'Demote':'Make admin'}</button>`:''}
         ${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}
       </div>
     </div>`).join('')}</div>
     <h3><span style="color:var(--brand2)">${icon('plus',16)}</span> Add a team member</h3>
-    <div class="field"><label>Name</label><input id="su_name" class="authinput" placeholder="e.g. Riya" oninput="suDeriveEmail()"></div>
-    <div class="field"><label>Login email</label><input id="su_email" class="authinput" placeholder="riya@msfps.in" oninput="this.dataset.touched=1"></div>
+    <div class="field"><label>Name (this is their login ID)</label><input id="su_name" class="authinput" placeholder="e.g. Riya" autocomplete="off"></div>
     <div class="field"><label>Passkey (min 6 characters)</label><input id="su_pass" class="authinput" placeholder="Set their passkey"></div>
     <div class="autherr" id="su_err" style="display:none"></div>
     <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
@@ -1219,18 +1228,17 @@ function renderSettings(){
 }
 function suDeriveEmail(){ const n=(document.getElementById('su_name').value||'').trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,''); const e=document.getElementById('su_email'); if(e&&!e.dataset.touched)e.value=n?n+'@msfps.in':''; }
 async function adminAddUser(){
-  const err=m=>{const e=document.getElementById('su_err');e.textContent=m;e.style.display='block';};
+  const err=m=>{const e=document.getElementById('su_err');if(e){e.textContent=m;e.style.display='block';}};
   const name=(document.getElementById('su_name').value||'').trim();
-  const email=(document.getElementById('su_email').value||'').trim().toLowerCase();
   const pass=(document.getElementById('su_pass').value||'');
-  if(!name)return err('Enter a name'); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return err('Enter a valid login email'); if(pass.length<6)return err('Passkey must be at least 6 characters');
+  if(!name)return err('Enter a name'); if(pass.length<6)return err('Passkey must be at least 6 characters');
+  if((accessDoc.users||[]).some(u=>norm(u.name)===norm(name)))return err('A staff member named “'+name+'” already exists — use Reset passkey instead.');
   const btn=document.getElementById('suAddBtn'); btn.disabled=true; btn.textContent='Adding…';
   try{
-    const sec=getSecApp();
-    try{ await sec.auth().createUserWithEmailAndPassword(email,pass); }
-    catch(e){ if((e.code||'')!=='auth/email-already-in-use') throw e; }
+    const email=aliasGen(name); const sec=getSecApp();
+    await sec.auth().createUserWithEmailAndPassword(email,pass);
     try{ await sec.auth().signOut(); }catch(e){}
-    const users=(accessDoc.users||[]).filter(u=>u.email!==email); users.push({name,email,key:pass});
+    const users=(accessDoc.users||[]).filter(u=>norm(u.name)!==norm(name)); users.push({name,email,key:pass});
     const emails=[...new Set([...(accessDoc.emails||[]),email])];
     accessDoc=Object.assign({},accessDoc,{users,emails,admins:accessDoc.admins||['monish@msfps.in']});
     await saveAccess(accessDoc);
@@ -1240,7 +1248,7 @@ async function adminAddUser(){
     toast('Member added ✓','ok');
   }catch(e){ err('Could not add: '+(e.code||e.message)); const b=document.getElementById('suAddBtn'); if(b){b.disabled=false;b.textContent='Add member & make invite';} }
 }
-function inviteLinkFor(email){ const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u)return null; let s='#u='+encodeURIComponent(email)+'&n='+encodeURIComponent(u.name||''); if(u.key)s+='&k='+encodeURIComponent(u.key); return location.origin+location.pathname+s; }
+function inviteLinkFor(email){ const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u)return null; let s='#n='+encodeURIComponent(u.name||''); if(u.key)s+='&k='+encodeURIComponent(u.key); return location.origin+location.pathname+s; }
 function copyInvite(email){ const link=inviteLinkFor(email); if(!link){toast('Could not build an invite link','warn');return;} const u=(accessDoc.users||[]).find(x=>x.email===email); copyText(link); toast(u&&u.key?'Invite link copied — signs them in automatically. Share privately.':'Invite link copied — opens the app with their name filled in; they enter their passkey once.','ok'); }
 async function removeUser(email){
   const ok=await askConfirm({title:'Remove member',msg:`Remove <b>${esc(email)}</b>'s access? They will no longer be able to sign in.`,danger:true,okLabel:'Remove access'});
@@ -1259,11 +1267,45 @@ async function resetToMonishOnly(){
   try{ await saveAccess(accessDoc); renderSettings(); toast('Done — only Monish remains; everyone else is signed out.','ok'); }
   catch(e){ toast('Could not reset: '+(e.code||e.message),'warn'); }
 }
-async function adminResetKey(email){
-  const ok=await askConfirm({title:'Reset passkey',msg:`Email a secure reset link to <b>${esc(email)}</b>? They open the email and set a brand-new passkey themselves.`,okLabel:'Send reset link'});
-  if(!ok)return;
-  try{ await fbAuth.sendPasswordResetEmail(email); toast('Reset link sent to '+email,'ok'); }
-  catch(e){ toast('Could not send: '+(e.code||e.message),'warn'); }
+function adminResetKey(email){
+  const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u){toast('Not found','warn');return;}
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Reset passkey — ${esc(u.name)}</h2><div class="sub">Set a new passkey for ${esc(u.name)}</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
+  <div class="sbody">
+    <div class="field"><label>New passkey (min 6 characters)</label><input id="rk_pass" class="authinput" placeholder="Type the new passkey"></div>
+    <div class="hint">They sign in with their <b>name</b> + this new passkey. It takes effect immediately — their old passkey stops working and any open session is signed out. No email, no console.</div>
+    <div class="autherr" id="rk_err" style="display:none"></div>
+  </div>
+  <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" id="rk_go" onclick="doResetKey('${esc(email)}')">${icon('check',16)} Set new passkey</button></div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+async function doResetKey(email){
+  const err=m=>{const e=document.getElementById('rk_err');if(e){e.textContent=m;e.style.display='block';}};
+  const u=(accessDoc.users||[]).find(x=>x.email===email); if(!u)return err('User not found');
+  const pass=(document.getElementById('rk_pass').value||'');
+  if(pass.length<6)return err('Passkey must be at least 6 characters');
+  const btn=document.getElementById('rk_go');btn.disabled=true;btn.textContent='Setting…';
+  try{
+    if(me && email===me.email && fbAuth.currentUser){
+      // resetting your own passkey — update your own login directly
+      try{ await fbAuth.currentUser.updatePassword(pass); }
+      catch(e){ if((e.code||'')==='auth/requires-recent-login'){ btn.disabled=false;btn.textContent='Set new passkey'; return err('Please sign out and back in, then reset your own passkey.'); } throw e; }
+      const users=(accessDoc.users||[]).map(x=>x.email===email?Object.assign({},x,{key:pass}):x);
+      accessDoc=Object.assign({},accessDoc,{users});
+      await saveAccess(accessDoc);
+    } else {
+      // resetting someone else — rotate their hidden login to a fresh one carrying the new passkey
+      const alias=aliasGen(u.name); const sec=getSecApp();
+      await sec.auth().createUserWithEmailAndPassword(alias,pass);
+      try{ await sec.auth().signOut(); }catch(e){}
+      const users=(accessDoc.users||[]).map(x=>x.email===email?Object.assign({},x,{email:alias,key:pass}):x);
+      const emails=[...new Set([...(accessDoc.emails||[]).filter(e=>e!==email),alias])];
+      let admins=(accessDoc.admins||[]); if(admins.includes(email))admins=[...new Set(admins.filter(a=>a!==email).concat(alias))];
+      accessDoc=Object.assign({},accessDoc,{users,emails,admins});
+      await saveAccess(accessDoc);
+    }
+    closeSheet(); renderSettings(); toast('New passkey set ✓','ok');
+  }catch(e){ const b=document.getElementById('rk_go'); if(b){b.disabled=false;b.textContent='Set new passkey';} err('Could not set: '+(e.code||e.message)); }
 }
 async function adminSetRole(email,makeAdmin){
   if(email==='monish@msfps.in')return; // Monish is always admin
@@ -1274,13 +1316,8 @@ async function adminSetRole(email,makeAdmin){
   try{ await saveAccess(accessDoc); renderSettings(); toast(makeAdmin?'Now an admin ✓':'Admin access removed','ok'); }
   catch(e){ toast('Could not update: '+(e.code||e.message),'warn'); }
 }
-async function forgotKey(){
-  const nm=(document.getElementById('authName').value||'').trim();
-  if(!nm){ showAuthError('Type your name above first, then tap “Forgot passkey?”'); return; }
-  const email=nm.toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,'')+'@msfps.in';
-  try{ await fbAuth.sendPasswordResetEmail(email);
-    const e=document.getElementById('authErr'); if(e){ e.style.display='block'; e.style.color='var(--ok)'; e.textContent='Reset link sent to '+email+' — open that email to set a new passkey.'; }
-  }catch(err){ showAuthError('Could not send reset link: '+(err.code||err.message)); }
+function forgotKey(){
+  const e=document.getElementById('authErr'); if(e){ e.style.display='block'; e.style.color='var(--ink)'; e.textContent='Ask Monish to reset your passkey (Settings → your name → Reset passkey).'; }
 }
 function buildLoginOptions(){ /* users now type their name — no dropdown */ }
 async function doLogin(){
@@ -1288,21 +1325,23 @@ async function doLogin(){
   const pass=document.getElementById('authPass').value;
   if(!nm){ showAuthError('Enter your name'); return; }
   if(!pass){ showAuthError('Enter your passkey'); return; }
-  const first=nm.toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,'');
-  const email=first+'@msfps.in';
   const btn=document.getElementById('authBtn'); btn.disabled=true; btn.textContent='Signing in…';
   try{
+    const alias=await aliasForName(nm); loginName=nm;
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    await fbAuth.signInWithEmailAndPassword(email,pass);
+    await fbAuth.signInWithEmailAndPassword(alias,pass);
   }catch(e){
-    const c=e.code||'';
-    showAuthError(/wrong-password|invalid-credential/.test(c)?'Wrong passkey — try again.':/user-not-found/.test(c)?'No account for that name yet.':/too-many-requests/.test(c)?'Too many tries. Wait a minute and retry.':'Sign-in failed: '+(c||e.message));
+    loginName=null; const c=e.code||'';
+    showAuthError(/wrong-password|invalid-credential|user-not-found/.test(c)?'Wrong name or passkey — try again, or ask Monish to reset it.':/too-many-requests/.test(c)?'Too many tries. Wait a minute and retry.':'Sign-in failed: '+(c||e.message));
     btn.disabled=false; btn.textContent='Sign in';
   }
 }
 async function onSignedIn(u){
-  const raw=(u.email||'').split('@')[0]; const cap=raw?raw[0].toUpperCase()+raw.slice(1):raw;
-  me={email:u.email,name:inviteName||((TEAM.find(t=>t.email===u.email)||{}).name)||cap};
+  const raw=(u.email||'').split('@')[0].split('.')[0]; const cap=raw?raw[0].toUpperCase()+raw.slice(1):raw;
+  let savedName=''; try{ savedName=localStorage.getItem('msfps_name')||''; }catch(e){}
+  me={email:u.email,name:loginName||inviteName||savedName||((accessDoc.users||[]).find(x=>x.email===u.email)||{}).name||((TEAM.find(t=>t.email===u.email)||{}).name)||cap};
+  try{ if(me.name) localStorage.setItem('msfps_name',me.name); }catch(e){}
+  loginName=null;
   hideAuthGate();
   const lo=document.getElementById('logoutWrap'); if(lo){lo.style.display='';lo.querySelector('span').textContent='Sign out ('+me.name+')';}
   await loadAccess();
