@@ -358,7 +358,10 @@
   .cspreset button{border:none;background:linear-gradient(120deg,rgba(0,113,227,.1),rgba(6,182,212,.1));color:var(--brand-ink);font-weight:650;font-size:12.5px;padding:8px 13px;border-radius:11px;cursor:pointer;transition:.12s}
   .cspreset button:hover{background:linear-gradient(120deg,rgba(0,113,227,.18),rgba(6,182,212,.18))}
   .cskpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
-  .cskpi .k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+  .cskpi .k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer;transition:border-color .12s ease,transform .06s ease}
+  .cskpi .k:hover{border-color:var(--brand2)}
+  .cskpi .k:active{transform:scale(.99)}
+  .cskpi .k.k-on{border-color:var(--brand2);box-shadow:0 0 0 2px var(--brand2)}
   .cskpi .k .n{font-size:24px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em}
   .cskpi .k .l{font-size:11.5px;color:var(--muted);margin-top:3px;font-weight:600}
   .pen{display:flex;align-items:center;gap:10px;margin:7px 0}
@@ -394,7 +397,8 @@
     <button class="navitem" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span><span class="navcnt" id="famCnt"></span></button>
     <button class="navitem" data-v="crosssell" onclick="showView('crosssell')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg><span>Cross-Sell</span></button>
     <button class="navitem" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
-    <button class="navitem" data-v="settings" onclick="showView('settings')" style="display:none"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
+    <button class="navitem" data-v="teams" onclick="showView('teams')" style="display:none"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></button>
+    <button class="navitem" data-v="settings" onclick="showView('settings')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
   </nav>
   <div class="sidefoot">
     <button class="btn btn-soft btn-block" onclick="exportExcel()"><svg class="ic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Excel</button>
@@ -408,7 +412,8 @@
   <button class="bnav" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span></button>
   <button class="bnav" data-v="crosssell" onclick="showView('crosssell')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg><span>Cross</span></button>
   <button class="bnav" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
-  <button class="bnav" data-v="settings" onclick="showView('settings')" style="display:none"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
+  <button class="bnav" data-v="teams" onclick="showView('teams')" style="display:none"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></button>
+  <button class="bnav" data-v="settings" onclick="showView('settings')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
 </div>
 <div class="topbar"><div class="pagetitle" id="pageTitle">Dashboard</div><div style="flex:1"></div>
   <button class="btn btn-soft btn-sm mob-only" onclick="exportExcel()" aria-label="Export Excel"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
@@ -513,7 +518,11 @@
     <div class="results" id="csResults"></div>
   </section>
 
-  <!-- SETTINGS (admin) -->
+  <!-- TEAMS (admin) -->
+  <section class="view" id="view-teams">
+    <div class="panel" id="teamsPanel"></div>
+  </section>
+  <!-- SETTINGS (everyone) -->
   <section class="view" id="view-settings">
     <div class="panel" id="settingsPanel"></div>
   </section>
@@ -687,9 +696,9 @@ function showView(v){
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('show'));
   document.getElementById('view-'+v).classList.add('show');
   document.querySelectorAll('[data-v]').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
-  const titles={dashboard:'Dashboard',directory:'Members',families:'Groups',activity:'Activity',settings:'Settings',crosssell:'Cross-Sell'};
+  const titles={dashboard:'Dashboard',directory:'Members',families:'Groups',activity:'Activity',teams:'Teams',settings:'Settings',crosssell:'Cross-Sell'};
   document.getElementById('pageTitle').textContent=titles[v]||'';
-  const fab=document.querySelector('.fab'); if(fab) fab.style.display=(v==='crosssell'||((v==='settings'||v==='activity')&&window.innerWidth<=820))?'none':'';
+  const fab=document.querySelector('.fab'); if(fab) fab.style.display=(v==='crosssell'||((v==='settings'||v==='teams'||v==='activity')&&window.innerWidth<=820))?'none':'';
   // Opening a section always starts fresh — clear any leftover search/filter from last time
   if(v==='directory'){
     const s=document.getElementById('search'); if(s){s.value='';s.placeholder='Search name, group code, phone, email, area…';}
@@ -705,6 +714,7 @@ function showView(v){
   if(v==='families')renderFamilies();
   if(v==='activity')renderActivity();
   if(v==='directory')render();
+  if(v==='teams')renderTeam();
   if(v==='settings')renderSettings();
   if(v==='crosssell')renderCross();
   window.scrollTo(0,0);
@@ -1207,11 +1217,11 @@ async function loadAccess(){
 async function saveAccess(doc){ await fdb.doc('meta/access').set(doc); const map={}; (doc.users||[]).forEach(u=>{ if(u.name&&u.email) map[norm(u.name)]=u.email; }); try{ await fdb.doc('meta/roster').set({map,emails:(doc.emails||[]),ts:Date.now()}); }catch(e){} }
 let _revoked=false;
 function accessRevoked(){ if(_revoked)return; _revoked=true; try{ fbAuth.signOut(); }catch(e){} }
-function updateAdminUI(){ document.querySelectorAll('[data-v="settings"]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; }
+function updateAdminUI(){ document.querySelectorAll('[data-v="teams"]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; }
 /* ===== Admin: users, invites ===== */
-function renderSettings(){
-  const p=document.getElementById('settingsPanel'); if(!p)return;
-  if(!isAdmin){ p.innerHTML=`<div class="empty"><div class="big" style="color:var(--muted)">${icon('shield',34)}</div>Settings are available to the admin only.</div>`; return; }
+function renderTeam(){
+  const p=document.getElementById('teamsPanel'); if(!p)return;
+  if(!isAdmin){ p.innerHTML=`<div class="empty"><div class="big" style="color:var(--muted)">${icon('shield',34)}</div>Team management is available to admins only.</div>`; return; }
   const users=(accessDoc.users||[]), admins=(accessDoc.admins||[]);
   p.innerHTML=`
     <h3><span style="color:var(--brand2)">${icon('users',16)}</span> Team members <span class="pill">${users.length}</span></h3>
@@ -1233,10 +1243,14 @@ function renderSettings(){
     <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that just opens the app with their name filled in — they then type the passkey you set. The link carries <b>no passkey</b>, so it's safe to share and always asks for the password. Tell each person their passkey separately.</div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="copyAppLink()">${icon('copy',15)} Copy universal login link (share in group)</button>
     <div class="hint" style="margin:6px 0 0">This link just opens the app's login screen — no name or passkey inside it. Each staff signs in with their own name + the passkey you set; only people on the list above can get in. Safe to share in a group chat.</div>
-    <button class="btn btn-danger btn-sm" style="margin-top:14px" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>
-    <h3 style="margin-top:24px"><span style="color:var(--brand2)">${icon('download',16)}</span> Directory data</h3>
-    <div class="hint" style="margin:4px 0 10px">Refresh the whole Members &amp; Groups directory from your WealthMagic customer export. A backup downloads first, you review a preview, and cross-sell stays linked.</div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openDirSync()">${icon('download',16)} Update directory from CRM</button>`;
+    <button class="btn btn-danger btn-sm" style="margin-top:14px" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>`;
+}
+function renderSettings(){
+  const p=document.getElementById('settingsPanel'); if(!p)return;
+  p.innerHTML=`
+    <h3><span style="color:var(--brand2)">${icon('download',16)}</span> Update directory from CRM</h3>
+    <div class="hint" style="margin:4px 0 12px">Refresh the whole Members &amp; Groups directory from your monthly WealthMagic customer export. A backup downloads first, you can review a preview before anything changes, and cross-sell stays linked. Anyone on the team can run this.</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openDirSync()">${icon('download',16)} Update directory from CRM</button>`;
 }
 function suDeriveEmail(){ const n=(document.getElementById('su_name').value||'').trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,''); const e=document.getElementById('su_email'); if(e&&!e.dataset.touched)e.value=n?n+'@msfps.in':''; }
 async function adminAddUser(){
@@ -1254,7 +1268,7 @@ async function adminAddUser(){
     const emails=[...new Set([...(accessDoc.emails||[]),email])];
     accessDoc=Object.assign({},accessDoc,{users,emails,admins:accessDoc.admins||['monish@msfps.in']});
     await saveAccess(accessDoc);
-    renderSettings();
+    renderTeam();
     const link=inviteLinkFor(email);
     document.getElementById('su_invite').innerHTML=`<div class="importbanner"><span>Invite ready for <b>${esc(name)}</b>.</span> <button class="btn btn-primary btn-sm" onclick="copyInvite('${esc(email)}')">${icon('copy',14)} Copy invite link</button></div>`;
     toast('Member added ✓','ok');
@@ -1269,7 +1283,7 @@ async function removeUser(email){
   const users=(accessDoc.users||[]).filter(u=>u.email!==email);
   const emails=(accessDoc.emails||[]).filter(e=>e!==email);
   accessDoc=Object.assign({},accessDoc,{users,emails});
-  try{ await saveAccess(accessDoc); renderSettings(); toast('Member removed','ok'); }
+  try{ await saveAccess(accessDoc); renderTeam(); toast('Member removed','ok'); }
   catch(e){ toast('Could not remove: '+(e.code||e.message),'warn'); }
 }
 async function resetToMonishOnly(){
@@ -1277,7 +1291,7 @@ async function resetToMonishOnly(){
   if(!ok)return;
   const mon=(accessDoc.users||[]).find(u=>u.email==='monish@msfps.in')||{name:'Monish',email:'monish@msfps.in'};
   accessDoc=Object.assign({},accessDoc,{users:[mon],emails:['monish@msfps.in'],admins:['monish@msfps.in']});
-  try{ await saveAccess(accessDoc); renderSettings(); toast('Done — only Monish remains; everyone else is signed out.','ok'); }
+  try{ await saveAccess(accessDoc); renderTeam(); toast('Done — only Monish remains; everyone else is signed out.','ok'); }
   catch(e){ toast('Could not reset: '+(e.code||e.message),'warn'); }
 }
 function adminResetKey(email){
@@ -1317,7 +1331,7 @@ async function doResetKey(email){
       accessDoc=Object.assign({},accessDoc,{users,emails,admins});
       await saveAccess(accessDoc);
     }
-    closeSheet(); renderSettings(); toast('New passkey set ✓','ok');
+    closeSheet(); renderTeam(); toast('New passkey set ✓','ok');
   }catch(e){ const b=document.getElementById('rk_go'); if(b){b.disabled=false;b.textContent='Set new passkey';} err('Could not set: '+(e.code||e.message)); }
 }
 async function adminSetRole(email,makeAdmin){
@@ -1326,7 +1340,7 @@ async function adminSetRole(email,makeAdmin){
   else { const ok=await askConfirm({title:'Remove admin',msg:`Remove admin access from <b>${esc(email)}</b>? They stay a regular member.`,danger:true,okLabel:'Remove admin'}); if(!ok)return; }
   const set=new Set(accessDoc.admins||['monish@msfps.in']); if(makeAdmin)set.add(email); else set.delete(email); set.add('monish@msfps.in');
   accessDoc=Object.assign({},accessDoc,{admins:[...set]});
-  try{ await saveAccess(accessDoc); renderSettings(); toast(makeAdmin?'Now an admin ✓':'Admin access removed','ok'); }
+  try{ await saveAccess(accessDoc); renderTeam(); toast(makeAdmin?'Now an admin ✓':'Admin access removed','ok'); }
   catch(e){ toast('Could not update: '+(e.code||e.message),'warn'); }
 }
 function forgotKey(){
@@ -1695,6 +1709,7 @@ async function finalizeConvert(m){
 /* ===== Cross-sell tab ===== */
 function csUniverse(){
   if(csStatus==='nodata') return MEMBERS.filter(m=>!holdOf(m));
+  if(csStatus==='hasdata') return MEMBERS.filter(m=>holdOf(m));
   if(csStatus==='active') return MEMBERS.filter(m=>(holdOf(m)||{}).status==='active');
   if(csStatus==='inactive') return MEMBERS.filter(m=>(holdOf(m)||{}).status==='inactive');
   return MEMBERS.slice(); // 'all' → every client in the directory, with product data or not
@@ -1717,7 +1732,8 @@ function renderCross(){
   if(csStatus==='nodata'){
     document.getElementById('csSum').innerHTML=`<b>${list.length}</b> client${list.length!==1?'s':''} with <b>no product data yet</b> — newly added, or not in your Active/Inactive files. Tap <b>Products</b> on any card to record what they hold.`;
   } else {
-    document.getElementById('csSum').innerHTML=csReadout(list.length)+(csStatus!=='all'?` · <span style="color:var(--muted)">${esc(csStatus)}</span>`:'');
+    const slabel={active:'active',inactive:'inactive',hasdata:'with product data'}[csStatus]||'';
+    document.getElementById('csSum').innerHTML=csReadout(list.length)+(slabel?` · <span style="color:var(--muted)">${esc(slabel)}</span>`:'');
   }
   const res=document.getElementById('csResults');
   if(!list.length){res.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big" style="color:var(--muted)">${icon('search',36)}</div>${Object.keys(HOLD).length?'No clients match this combination.':'No product data yet. '+(isAdmin?'Tap <b>Import / refresh</b> to load your Active & Inactive files.':'Ask Monish to import the product files.')}</div>`;return;}
@@ -1758,6 +1774,16 @@ function csRenderStatus(){
   const el=document.getElementById('csStatusPills');if(el)el.innerHTML=opts.map(([v,l])=>`<button class="cspill ${csStatus===v?'on-has':''}" onclick="csSetStatus('${v}')">${l}</button>`).join('');
 }
 function csSetStatus(v){csStatus=v;renderCross();}
+function csKpi(which){
+  csState={};csSpecial=null;
+  if(which==='single'){csStatus='all';csSpecial='single';}
+  else if(which==='hasdata'){csStatus='hasdata';}
+  else if(which==='active'){csStatus='active';}
+  else if(which==='nodata'){csStatus='nodata';}
+  const s=document.getElementById('csSearch');if(s)s.value='';
+  renderCross();
+  const r=document.getElementById('csResults');if(r&&r.scrollIntoView)r.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function csToggleAll(b){csShowAll=b;renderCross();}
 function csClear(){csState={};csSpecial=null;csStatus='all';const s=document.getElementById('csSearch');if(s)s.value='';renderCross();}
 function csPreset(id){
@@ -1780,11 +1806,12 @@ function csRenderDash(){
   const act=mapped.filter(m=>(holdOf(m)||{}).status==='active').length;
   const nodata=MEMBERS.length-mapped.length;const aprod=activeProducts();
   const single=mapped.filter(m=>{const p=(holdOf(m)||{}).products||{};return aprod.filter(x=>p[x.k]).length===1;}).length;
+  const on=w=>(((w==='hasdata'&&csStatus==='hasdata')||(w==='active'&&csStatus==='active')||(w==='single'&&csSpecial==='single')||(w==='nodata'&&csStatus==='nodata'))?' k-on':'');
   let html=`<div class="cskpi">
-    <div class="k"><div class="n">${mapped.length}</div><div class="l">clients with product data</div></div>
-    <div class="k"><div class="n">${act}</div><div class="l">active</div></div>
-    <div class="k"><div class="n">${single}</div><div class="l">hold only 1 product</div></div>
-    <div class="k"><div class="n">${nodata}</div><div class="l">no products yet</div></div></div>`;
+    <button type="button" class="k${on('hasdata')}" onclick="csKpi('hasdata')"><div class="n">${mapped.length}</div><div class="l">clients with product data</div></button>
+    <button type="button" class="k${on('active')}" onclick="csKpi('active')"><div class="n">${act}</div><div class="l">active</div></button>
+    <button type="button" class="k${on('single')}" onclick="csKpi('single')"><div class="n">${single}</div><div class="l">hold only 1 product</div></button>
+    <button type="button" class="k${on('nodata')}" onclick="csKpi('nodata')"><div class="n">${nodata}</div><div class="l">no products yet</div></button></div>`;
   const denom=mapped.length||1;
   html+=`<div class="panel" style="margin-bottom:12px"><h3><span style="color:var(--brand2)">${icon('chip',16)}</span> Product penetration <span class="pill">${mapped.length} clients</span></h3>`;
   aprod.forEach(x=>{const n=mapped.filter(m=>((holdOf(m)||{}).products||{})[x.k]).length;const pct=Math.round(n/denom*100);
@@ -1992,7 +2019,6 @@ function backupDirectoryCSV(){
 }
 let _wmRecs=null,_wmPlan=null,_wmReview=null;
 function openDirSync(){
-  if(!isAdmin){toast('Admins only','warn');return;}
   _wmRecs=null;_wmPlan=null;_wmReview=null;
   const sheet=document.getElementById('sheet');
   sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Update directory from CRM</h2><div class="sub">Monthly refresh from your WealthMagic export</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
