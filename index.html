@@ -966,7 +966,7 @@ function diffMember(b,a){const out=[];
 function renderActivity(){
   actAll().then(a=>{
     a.sort((x,y)=>y.ts-x.ts);
-    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'},import:{i:'download',c:'create',t:'Imported product data'}};
+    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'},import:{i:'download',c:'create',t:'Imported product data'},crmsync:{i:'download',c:'create',t:'Updated directory from CRM'}};
     const q=norm((document.getElementById('actSearch')||{}).value||'').trim();
     const terms=q.split(/\s+/).filter(Boolean);
     const list=terms.length?a.filter(e=>{const v=AV[e.action]||{t:e.action};return terms.every(w=>norm([e.name,v.t,e.by,e.detail,e.action,fmtDateTime(e.ts)].join(' ')).includes(w));}):a;
@@ -1983,16 +1983,18 @@ function openDirSync(){
   if(!isAdmin){toast('Admins only','warn');return;}
   _wmRecs=null;_wmPlan=null;_wmReview=null;
   const sheet=document.getElementById('sheet');
-  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Update directory from CRM</h2><div class="sub">WealthMagic customer export</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
+  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Update directory from CRM</h2><div class="sub">Monthly refresh from your WealthMagic export</div></div><button class="xbtn" onclick="closeSheet()">×</button></div>
    <div class="sbody">
-     <div class="field"><label>CRM customer file (.xls / .csv)</label><input type="file" id="wm_file" accept=".xls,.xlsx,.csv,.txt,.tsv" class="authinput"></div>
-     <div class="hint">Refreshes name, group, group head, DOB, PAN, residential address, email and mobiles from the CRM. Office address and any extra numbers you added are kept. Each person's internal ID is preserved, so <b>cross-sell stays linked</b>. Nothing is written until you review the preview and press Confirm — and a backup downloads first.</div>
+     <div id="wm_last" class="importbanner" style="display:block;margin-bottom:10px">Checking last update…</div>
+     <div class="field"><label>CRM customer file (.xls / .xlsx / .csv)</label><input type="file" id="wm_file" accept=".xls,.xlsx,.csv,.txt,.tsv" class="authinput"></div>
+     <div class="hint"><b>Every month:</b> export the customer list from WealthMagic → choose that file above → press <b>Backup &amp; update now</b>. The tool refreshes name, group, group head, DOB, PAN, residential address, email and mobiles for everyone, adds any brand-new clients, and keeps anyone not in the file for review — it <b>never deletes</b>. Office address and extra numbers you added by hand are kept. Each person's internal ID is preserved, so <b>cross-sell stays linked and is never touched</b>. A dated backup downloads automatically before anything changes.</div>
      <div id="wm_out" style="margin-top:10px"></div>
    </div>
    <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button>
      <button class="btn btn-ghost btn-sm" id="wm_prev" onclick="runDirSyncPreview()">${icon('eye',16)} Preview (optional)</button>
      <button class="btn btn-primary" id="wm_go" onclick="confirmDirSync()">${icon('check',16)} Backup &amp; update now</button></div>`;
   document.getElementById('overlay').classList.add('show');
+  try{ actAll().then(a=>{ const last=(a||[]).filter(e=>e&&(e.action==='crmsync'||(e.action==='import'&&/synced from CRM|updated from CRM/i.test(e.name||'')))).sort((x,y)=>y.ts-x.ts)[0]; const el=document.getElementById('wm_last'); if(el) el.innerHTML = last ? ('Last updated from CRM: <b>'+esc(fmtDateTime(last.ts))+'</b>'+(last.detail?'<br><span style="color:var(--muted)">'+esc(last.detail)+'</span>':'')) : 'No CRM update has been run yet — this will be your first.'; }).catch(()=>{const el=document.getElementById('wm_last');if(el)el.style.display='none';}); }catch(e){const el=document.getElementById('wm_last');if(el)el.style.display='none';}
 }
 async function runDirSyncPreview(){
   const out=document.getElementById('wm_out');const fin=(document.getElementById('wm_file').files||[])[0];
@@ -2036,7 +2038,7 @@ async function confirmDirSync(){
       _wmRecs.forEach(r=>{const i=MEMBERS.findIndex(x=>String(x.membid)===String(r.membid));if(i>=0)MEMBERS[i]=r;else MEMBERS.push(r);});
       afterData();
     }
-    logAct({action:'import',name:'Directory synced from CRM',detail:_wmPlan.update+' updated, '+_wmPlan.add+' new, '+_wmPlan.regroup+' regrouped, '+(_wmReview?_wmReview.length:0)+' kept for review'}).catch(()=>{});
+    logAct({action:'crmsync',name:'Directory updated from CRM',detail:_wmPlan.update+' updated, '+_wmPlan.add+' new, '+_wmPlan.regroup+' regrouped, '+(_wmReview?_wmReview.length:0)+' kept for review'}).catch(()=>{});
     toast('Directory updated ✓','ok'); closeSheet();
   }catch(e){ toast('Sync failed: '+(e.code||e.message),'warn'); const go2=document.getElementById('wm_go'); if(go2){go2.disabled=false;go2.textContent='Backup & apply';} }
 }
