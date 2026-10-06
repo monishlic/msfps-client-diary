@@ -589,6 +589,7 @@ function umCount(){return Object.keys(UNMAPPED).length;}
 function pcolor(k){return PCOLOR[k]||'#0071e3';}
 function activeProducts(){return PRODUCTS.filter(p=>csShowAll||!p.opt);}
 function holdOf(m){return HOLD[String(m.membid)]||null;}
+function nodataCount(){return MEMBERS.filter(m=>!holdOf(m)).length;}
 function csKey(gc,nm){return String(gc||'').trim().toUpperCase()+'||'+String(nm||'').toLowerCase().replace(/\s+/g,' ').trim();}
 function today(){return new Date().toISOString().slice(0,10);}
 
@@ -1694,25 +1695,30 @@ async function finalizeConvert(m){
 /* ===== Cross-sell tab ===== */
 function csUniverse(){
   if(csStatus==='nodata') return MEMBERS.filter(m=>!holdOf(m));
-  let base=MEMBERS.filter(m=>holdOf(m));
-  if(csStatus==='active') base=base.filter(m=>(holdOf(m)||{}).status==='active');
-  if(csStatus==='inactive') base=base.filter(m=>(holdOf(m)||{}).status==='inactive');
-  return base;
+  if(csStatus==='active') return MEMBERS.filter(m=>(holdOf(m)||{}).status==='active');
+  if(csStatus==='inactive') return MEMBERS.filter(m=>(holdOf(m)||{}).status==='inactive');
+  return MEMBERS.slice(); // 'all' → every client in the directory, with product data or not
 }
 function renderCross(){
   csRenderDash(); csRenderProd(); csRenderStatus(); csRenderPresets();
   if(csStatus==='unmapped'){ const qq=(document.getElementById('csSearch')||{}).value||''; const n=renderUnmappedInto('csResults',qq); csLast=[]; document.getElementById('csSum').innerHTML=`<b>${n}</b> unmapped prospect${n!==1?'s':''} — not linked to any client or group`; return; }
   const q=norm((document.getElementById('csSearch')||{}).value||'').trim();const qd=digits(q);
   const aprod=activeProducts();
+  const anyProdFilter=Object.keys(csState).length>0||csSpecial==='single';
   let list=csUniverse().filter(m=>{
-    const p=((holdOf(m)||{}).products)||{};
+    const h=holdOf(m); const p=(h&&h.products)||{};
+    if(anyProdFilter&&!h) return false; // no product data → can't judge product gaps; find them under "No products yet"
     for(const k in csState){ if(csState[k]==='has'&&!p[k]) return false; if(csState[k]==='no'&&p[k]) return false; }
     if(csSpecial==='single'){ if(aprod.filter(x=>p[x.k]).length!==1) return false; }
     if(q){ const hay=norm(m.name)+' '+norm(m.group_code)+' '+norm(m.group_name)+' '+digits(m.mobile); if(!hay.includes(q)&&!(qd&&digits(m.mobile).includes(qd))) return false; }
     return true;
   });
   list=sortName(list); csLast=list;
-  document.getElementById('csSum').innerHTML=csReadout(list.length)+(csStatus!=='all'?` · <span style="color:var(--muted)">${esc(csStatus==='nodata'?'no data yet':csStatus)}</span>`:'');
+  if(csStatus==='nodata'){
+    document.getElementById('csSum').innerHTML=`<b>${list.length}</b> client${list.length!==1?'s':''} with <b>no product data yet</b> — newly added, or not in your Active/Inactive files. Tap <b>Products</b> on any card to record what they hold.`;
+  } else {
+    document.getElementById('csSum').innerHTML=csReadout(list.length)+(csStatus!=='all'?` · <span style="color:var(--muted)">${esc(csStatus)}</span>`:'');
+  }
   const res=document.getElementById('csResults');
   if(!list.length){res.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big" style="color:var(--muted)">${icon('search',36)}</div>${Object.keys(HOLD).length?'No clients match this combination.':'No product data yet. '+(isAdmin?'Tap <b>Import / refresh</b> to load your Active & Inactive files.':'Ask Monish to import the product files.')}</div>`;return;}
   res.innerHTML=list.slice(0,300).map(csCard).join('')+(list.length>300?`<div class="empty" style="grid-column:1/-1;padding:16px">Showing first 300 of ${list.length}. Narrow with filters.</div>`:'');
@@ -1740,7 +1746,7 @@ function csReadout(n){
   const has=activeProducts().filter(p=>csState[p.k]==='has').map(p=>p.label);
   const no=activeProducts().filter(p=>csState[p.k]==='no').map(p=>p.label);
   if(csSpecial==='single')return `<b>${n}</b> client${n!==1?'s':''} who hold <b>exactly one</b> product`;
-  if(!has.length&&!no.length)return `<b>${n}</b> client${n!==1?'s':''} with product data — tap a product, or pick a Quick list`;
+  if(!has.length&&!no.length)return `<b>${n}</b> client${n!==1?'s':''} — tap a product, or pick a Quick list`;
   let s=`<b>${n}</b> client${n!==1?'s':''} who `;
   if(has.length)s+=`<span style="color:#1a7f37;font-weight:700">have ${esc(has.join(' + '))}</span>`;
   if(has.length&&no.length)s+=' and ';
@@ -1748,7 +1754,7 @@ function csReadout(n){
   return s;
 }
 function csRenderStatus(){
-  const opts=[['all','All clients'],['active','Active'],['inactive','Inactive'],['nodata','No data yet'],['unmapped','No group mapped'+(umCount()?' ('+umCount()+')':'')]];
+  const opts=[['all','All clients'],['active','Active'],['inactive','Inactive'],['nodata','No products yet'+(nodataCount()?' ('+nodataCount()+')':'')],['unmapped','No group mapped'+(umCount()?' ('+umCount()+')':'')]];
   const el=document.getElementById('csStatusPills');if(el)el.innerHTML=opts.map(([v,l])=>`<button class="cspill ${csStatus===v?'on-has':''}" onclick="csSetStatus('${v}')">${l}</button>`).join('');
 }
 function csSetStatus(v){csStatus=v;renderCross();}
@@ -1778,7 +1784,7 @@ function csRenderDash(){
     <div class="k"><div class="n">${mapped.length}</div><div class="l">clients with product data</div></div>
     <div class="k"><div class="n">${act}</div><div class="l">active</div></div>
     <div class="k"><div class="n">${single}</div><div class="l">hold only 1 product</div></div>
-    <div class="k"><div class="n">${nodata}</div><div class="l">no data yet</div></div></div>`;
+    <div class="k"><div class="n">${nodata}</div><div class="l">no products yet</div></div></div>`;
   const denom=mapped.length||1;
   html+=`<div class="panel" style="margin-bottom:12px"><h3><span style="color:var(--brand2)">${icon('chip',16)}</span> Product penetration <span class="pill">${mapped.length} clients</span></h3>`;
   aprod.forEach(x=>{const n=mapped.filter(m=>((holdOf(m)||{}).products||{})[x.k]).length;const pct=Math.round(n/denom*100);
@@ -1937,16 +1943,22 @@ async function parseWM(file){
     for(let i=1;i<lines.length;i++){const c=lines[i].split(sep);const g=v=>(v>=0&&v<c.length)?String(c[v]).trim():'';
       const gc=g(C.gc),fn=g(C.fn),ln=g(C.ln);const nm=g(C.nm)||[fn,g(C.mn),ln].filter(Boolean).join(' ');
       rows.push({gc,nm,fn,ln,head:/true/i.test(g(C.head)),dob:_dobISO(g(C.dob)),pan:g(C.pan),addr:[g(C.a1),g(C.a2),g(C.a3),g(C.a4),g(C.city),g(C.state)].filter(Boolean).join(', '),pin:g(C.pin),emails:_emailsFrom(g(C.eto),g(C.ecc)),m1:g(C.m1),m2:g(C.m2)});}
+    if(!rows.length) throw new Error('found the WealthMagic header but no client rows below it — the export looks empty.');
     return rows;
   }
   // binary .xls/.xlsx fallback via SheetJS
   if(typeof XLSX==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
   const wb=XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array'});
   const js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-  return js.map(r=>{const low={};Object.keys(r).forEach(k=>low[String(k).toLowerCase().trim()]=r[k]);const G=n=>String(low[n]||'').trim();
+  const out=js.map(r=>{const low={};Object.keys(r).forEach(k=>low[String(k).toLowerCase().trim()]=r[k]);const G=n=>String(low[n]||'').trim();
     const fn=G('first name'),ln=G('last name');const nm=G('group member')||[fn,G('middle name'),ln].filter(Boolean).join(' ');
     return {gc:G('gr.code'),nm,fn,ln,head:/true/i.test(G('head')),dob:_dobISO(G('d.o.b(g)')||G('d.o.b(r)')||G('dob')),pan:G('pan'),addr:[G('residential address1'),G('residential address2'),G('residential address3'),G('residential address4'),G('resi.city'),G('resi.state')].filter(Boolean).join(', '),pin:G('resi.pin'),emails:_emailsFrom(G('emailto'),G('emailcc')),m1:G('mobile 1'),m2:G('mobile 2')};
   }).filter(r=>r.nm);
+  if(!out.length){
+    const cols=js.length?Object.keys(js[0]).map(c=>String(c).trim()).filter(Boolean).join(', '):'(file is empty)';
+    throw new Error('this doesn’t look like the full WealthMagic customer export. It has columns: ['+cols+']. Please choose the complete customer list from WealthMagic — the one with Gr.Code, First Name, Last Name, PAN, address and mobiles. (Tip: the small “New_Clients” summary file will NOT work.)');
+  }
+  return out;
 }
 function buildSyncPlan(rows){
   const byGFL={},byFL={};
