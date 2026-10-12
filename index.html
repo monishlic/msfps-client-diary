@@ -401,7 +401,7 @@
     <button class="navitem" data-v="settings" onclick="showView('settings')"><svg class="ic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
   </nav>
   <div class="sidefoot">
-    <button class="btn btn-soft btn-block" onclick="exportExcel()"><svg class="ic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Excel</button>
+    <button class="btn btn-soft btn-block" data-admin="1" style="display:none" onclick="exportExcel()"><svg class="ic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Excel</button>
     <button class="statuschip" id="statusBadge" onclick="toggleSync()"><span class="dot" id="statusDot"></span><span id="statusText">Online</span></button>
     <button class="btn btn-soft btn-block" id="logoutWrap" style="display:none;justify-content:center" onclick="signOutUser()"><svg class="ic-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sign out</span></button>
   </div>
@@ -412,11 +412,12 @@
   <button class="bnav" data-v="families" onclick="showView('families')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Groups</span></button>
   <button class="bnav" data-v="crosssell" onclick="showView('crosssell')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg><span>Cross</span></button>
   <button class="bnav" data-v="activity" onclick="showView('activity')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Activity</span></button>
-  <button class="bnav" data-v="teams" onclick="showView('teams')" style="display:none"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></button>
-  <button class="bnav" data-v="settings" onclick="showView('settings')"><svg class="ic-svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
 </div>
 <div class="topbar"><div class="pagetitle" id="pageTitle">Dashboard</div><div style="flex:1"></div>
-  <button class="btn btn-soft btn-sm mob-only" onclick="exportExcel()" aria-label="Export Excel"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+  <button id="alertBell" onclick="openAlerts()" aria-label="Security alerts" title="Security alerts" style="display:none;position:relative;background:var(--chip);color:var(--ink);border:1px solid var(--line);width:40px;height:40px;border-radius:12px;cursor:pointer;align-items:center;justify-content:center;margin-right:8px"><svg class="ic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span id="alertDot" style="display:none;position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:9px;align-items:center;justify-content:center">0</span></button>
+  <button class="btn btn-soft btn-sm mob-only" data-admin="1" style="display:none" onclick="showView('teams')" aria-label="Teams" title="Teams"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
+  <button class="btn btn-soft btn-sm mob-only" onclick="showView('settings')" aria-label="Settings" title="Settings"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <button class="btn btn-soft btn-sm mob-only" data-admin="1" style="display:none" onclick="exportExcel()" aria-label="Export Excel"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
   <button class="btn btn-soft btn-sm mob-only" id="mobLogout" onclick="signOutConfirm()" aria-label="Sign out" title="Sign out" style="margin-left:8px"><svg class="ic-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div>
 
 <main>
@@ -474,7 +475,7 @@
       <input id="famSearch" type="text" placeholder="Search group by code or name…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search">
     </div>
     <div class="dirbar"><div class="meta" id="famMeta"></div><div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm" onclick="exportGroups()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export groups</button>
+      <button class="btn btn-ghost btn-sm" data-admin="1" style="display:none" onclick="exportGroups()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export groups</button>
     </div>
     <div class="famgrid" id="famGrid"></div>
   </section>
@@ -511,8 +512,8 @@
     <div class="cssum" id="csSum"></div>
     <div class="csactions">
       <button class="btn btn-ghost btn-sm" onclick="csClear()">Clear filters</button>
-      <button class="btn btn-ghost btn-sm" onclick="csCopyNumbers()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy numbers</button>
-      <button class="btn btn-primary btn-sm" onclick="exportCross()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export this list</button>
+      <button class="btn btn-ghost btn-sm" data-admin="1" style="display:none" onclick="csCopyNumbers()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy numbers</button>
+      <button class="btn btn-primary btn-sm" data-admin="1" style="display:none" onclick="exportCross()"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export this list</button>
       <button class="btn btn-ghost btn-sm" id="csImportBtn" onclick="openHoldingsImport()" style="display:none"><svg class="ic-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 8 12 3 17 8"/><path d="M21 21H3"/></svg> Import / refresh</button>
     </div>
     <div class="results" id="csResults"></div>
@@ -593,6 +594,50 @@ const PKEY=Object.fromEntries(PRODUCTS.map(p=>[p.k,p]));
 const PCOLOR={mf:'#0071e3',life:'#34c759',health:'#5856d6',bond:'#ff9500',stocks:'#00c7be',ppf:'#af52de',bullion:'#d4a017',equity:'#ff2d55',las:'#8e8e93',p2p:'#30b0c7',digigold:'#c9a227'};
 let HOLD={}, csState={}, csStatus='all', csShowAll=false, csSpecial=null, csLast=[];
 let UNMAPPED={}, pendingConvert=null;
+/* ===== Security: contact masking + session + alerts ===== */
+let MASK=false, _rflags={}, myLoginAt=0, _viewLog=[], _alertMark={}, ALERTS=[], PRESENCE=[];
+function maskOn(){ return !!MASK && !isAdmin; }
+function maskVal(s){ s=(s==null?'':''+s).trim(); if(!s) return s; if(s.length<=4) return (s[0]||'')+'••'; return s.slice(0,2)+'••••'+s.slice(-2); }
+function showNum(s){ return maskOn()? maskVal(s) : (s==null?'':''+s); }
+function devLabel(){ const u=navigator.userAgent||''; const os=/Windows/.test(u)?'Windows':/Android/.test(u)?'Android':/iPhone|iPad|iPod/.test(u)?'iOS':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'device'; const br=/Edg/.test(u)?'Edge':/OPR|Opera/.test(u)?'Opera':/Chrome/.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'browser'; return br+' · '+os; }
+/* ----- audit view + velocity alerts (harvesting detection) ----- */
+let _viewedSession={}, _alertsOpen=false;
+const VEL_SOFT=25, VEL_HARD=50, VEL_DAY=150; // distinct profiles: >25/10min soft, >50/10min hard, >150/day
+function trackView(m){
+  const now=Date.now(), id=String(m.membid);
+  _viewLog.push({id,ts:now});
+  _viewLog=_viewLog.filter(e=>now-e.ts<=24*3600000);
+  if(!_viewedSession[id]){ _viewedSession[id]=1; logAct({action:'view',membid:id,name:m.name,detail:(m.group_code||'')}).catch(()=>{}); }
+  const last10=new Set(_viewLog.filter(e=>now-e.ts<=600000).map(e=>e.id)).size;
+  const day=new Set(_viewLog.map(e=>e.id)).size;
+  const fire=(sev)=>{ if(_alertMark[sev]&&(now-_alertMark[sev])<15*60000) return; _alertMark[sev]=now; raiseAlert(sev,last10,day); };
+  if(last10>VEL_HARD) fire('hard'); else if(last10>VEL_SOFT) fire('soft');
+  if(day>VEL_DAY) fire('day');
+}
+async function raiseAlert(sev,last10,day){
+  const who=(me&&me.name)||'Someone';
+  const detail = sev==='day' ? (who+' viewed '+day+' client profiles today') : (who+' viewed '+last10+' client profiles in 10 minutes');
+  const rec={ts:Date.now(),user:who,email:(me&&me.email)||'',type:'velocity',severity:(sev==='soft'?'medium':'high'),detail,device:devLabel()};
+  try{ if(CLOUD) await fdb.collection('alerts').add(rec); }catch(e){}
+}
+function alertCount(){ return (ALERTS||[]).filter(a=>!a.ack).length; }
+function renderAlertBell(){ const b=document.getElementById('alertBell'); if(!b)return; b.style.display=isAdmin?'inline-flex':'none'; const n=alertCount(); const dot=document.getElementById('alertDot'); if(dot){ dot.style.display=n?'flex':'none'; dot.textContent=n>9?'9+':String(n); } }
+function openAlerts(){ _alertsOpen=true; renderAlertsSheet(); document.getElementById('overlay').classList.add('show'); }
+function renderAlertsSheet(){
+  const sheet=document.getElementById('sheet'); if(!sheet)return;
+  const list=(ALERTS||[]).slice().sort((a,b)=>b.ts-a.ts);
+  sheet.innerHTML=`<div class="shead"><div style="flex:1"><h2>Security alerts</h2><div class="sub">Unusual viewing activity by staff</div></div><button class="xbtn" onclick="closeAlerts()">×</button></div>
+   <div class="sbody">
+     ${list.length?list.map(a=>`<div class="famitem" style="justify-content:space-between;cursor:default;${a.ack?'opacity:.5':''}">
+       <div style="min-width:0"><b>${a.severity==='high'?'🔴':'🟠'} ${esc(a.detail)}</b><div class="dupsub">${esc(a.device||'')} · ${fmtDateTime(a.ts)}</div></div>
+       ${a.ack?'<span class="dupsub">seen</span>':`<button class="btn btn-ghost btn-sm" onclick="ackAlert('${a._id}')">Mark seen</button>`}
+     </div>`).join(''):`<div class="empty"><div class="big" style="color:var(--muted)">${icon('shield',34)}</div>No alerts. Staff viewing looks normal.</div>`}
+     <div class="hint" style="margin-top:12px">Flags at more than ${VEL_SOFT} client profiles in 10 minutes (or ${VEL_DAY} in a day). This is a tripwire for bulk copying — a high count isn't proof, just a prompt to check in.</div>
+   </div>
+   <div class="sfoot"><button class="btn btn-ghost" onclick="closeAlerts()">Close</button></div>`;
+}
+function closeAlerts(){ _alertsOpen=false; closeSheet(); }
+async function ackAlert(id){ try{ await fdb.collection('alerts').doc(id).update({ack:true}); }catch(e){} }
 function umList(){return Object.values(UNMAPPED).sort((a,b)=>String(a.name).localeCompare(String(b.name)));}
 function umCount(){return Object.keys(UNMAPPED).length;}
 function pcolor(k){return PCOLOR[k]||'#0071e3';}
@@ -840,7 +885,7 @@ function rowHTML(m,q){
   return `<div class="lrow" onclick="openDetail('${m.membid}')">
     <div class="avatar sm" style="background:${avatarColor(m.group_code)};font-size:${avFont(m.group_code,12)}px;letter-spacing:0">${esc(m.group_code)}</div>
     <div class="lmain"><div class="lname">${hl(m.name,q)}</div><div class="lsub">${esc(m.group_name)}${fam>0?' · +'+fam+' more':''}</div>${whyMatch(m,q)}</div>
-    <div class="lcell mono">${m.mobile?hl(m.mobile,q):'<span style="color:var(--muted)">—</span>'}</div>
+    <div class="lcell mono">${m.mobile?(maskOn()?esc(maskVal(m.mobile)):hl(m.mobile,q)):'<span style="color:var(--muted)">—</span>'}</div>
     <div class="lcell area">${m.resi_pin?esc(m.resi_pin):''}</div>
     <div class="lchev">${icon('chev',16)}</div>
   </div>`;
@@ -854,8 +899,8 @@ function cardHTML(m,q){
     <div style="flex:1;min-width:0">
       <div class="nm">${hl(m.name,q)}${m.age!=null?`<span class="tag age">${m.age} yrs</span>`:''}</div>
       <div class="fam">${famTxt}</div>
-      ${m.mobile?`<div class="krow"><span class="ic">${icon('phone',15)}</span>${hl(m.mobile,q)}</div>`:`<div class="krow mut"><span class="ic">${icon('phone',15)}</span>No mobile on file</div>`}
-      ${(m.emails&&m.emails.length)?`<div class="krow"><span class="ic">${icon('mail',15)}</span>${hl(m.emails[0],q)}</div>`:`<div class="krow mut"><span class="ic">${icon('mail',15)}</span>No email on file</div>`}
+      ${m.mobile?`<div class="krow"><span class="ic">${icon('phone',15)}</span>${maskOn()?esc(maskVal(m.mobile)):hl(m.mobile,q)}</div>`:`<div class="krow mut"><span class="ic">${icon('phone',15)}</span>No mobile on file</div>`}
+      ${(m.emails&&m.emails.length)?`<div class="krow"><span class="ic">${icon('mail',15)}</span>${maskOn()?esc(maskVal(m.emails[0])):hl(m.emails[0],q)}</div>`:`<div class="krow mut"><span class="ic">${icon('mail',15)}</span>No email on file</div>`}
       ${m.resi_pin?`<div class="krow mut"><span class="ic">${icon('pin',15)}</span>Pin ${esc(m.resi_pin)}</div>`:''}
       ${whyMatch(m,q)}
     </div></div></div>`;
@@ -977,10 +1022,10 @@ function diffMember(b,a){const out=[];
 function renderActivity(){
   actAll().then(a=>{
     a.sort((x,y)=>y.ts-x.ts);
-    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'},import:{i:'download',c:'create',t:'Imported product data'},crmsync:{i:'download',c:'create',t:'Updated directory from CRM'}};
+    const AV={create:{i:'plus',c:'create',t:'Added new member'},edit:{i:'edit',c:'edit',t:'Edited details'},move:{i:'edit',c:'edit',t:'Moved / changed group'},split:{i:'edit',c:'edit',t:'Split a group'},delete:{i:'edit',c:'del',t:'Deleted member'},'delete-group':{i:'edit',c:'del',t:'Deleted a group'},export:{i:'download',c:'edit',t:'Exported to Excel'},import:{i:'download',c:'create',t:'Imported product data'},crmsync:{i:'download',c:'create',t:'Updated directory from CRM'},view:{i:'eye',c:'edit',t:'Viewed a client'},login:{i:'shield',c:'create',t:'Signed in'},logout:{i:'back',c:'edit',t:'Signed out'}};
     const q=norm((document.getElementById('actSearch')||{}).value||'').trim();
     const terms=q.split(/\s+/).filter(Boolean);
-    const list=terms.length?a.filter(e=>{const v=AV[e.action]||{t:e.action};return terms.every(w=>norm([e.name,v.t,e.by,e.detail,e.action,fmtDateTime(e.ts)].join(' ')).includes(w));}):a;
+    const list=terms.length?a.filter(e=>{const v=AV[e.action]||{t:e.action};return terms.every(w=>norm([e.name,v.t,e.by,e.detail,e.action,fmtDateTime(e.ts)].join(' ')).includes(w));}):a.filter(e=>e.action!=='view');
     document.getElementById('actCnt').textContent=list.length;
     document.getElementById('actList').innerHTML=list.length?list.map(e=>{const v=AV[e.action]||{i:'edit',c:'edit',t:e.action};return `<div class="actitem">
       <div class="ai ${v.c}">${icon(v.i,16)}</div>
@@ -999,9 +1044,9 @@ function addRecent(id){let r=getRecent().filter(x=>x!==id);r.unshift(id);r=r.sli
 
 /* ---------- detail ---------- */
 function openDetail(id){
-  const m=MEMBERS.find(x=>x.membid===id);if(!m)return;currentId=id;addRecent(id);
+  const m=MEMBERS.find(x=>x.membid===id);if(!m)return;currentId=id;addRecent(id);trackView(m);
   const fam=sortName(famOf(m.group_code).filter(x=>x.membid!==id));
-  const emailHtml=(m.emails&&m.emails.length)?m.emails.map(e=>`<div class="val vcopy"><span style="color:var(--brand2)">${icon('mail',14)}</span><a href="mailto:${esc(e)}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(e)}</a>${cbtn(e)}</div>`).join(''):'<div class="val" style="color:var(--muted)">—</div>';
+  const emailHtml=(m.emails&&m.emails.length)?m.emails.map(e=>`<div class="val vcopy"><span style="color:var(--brand2)">${icon('mail',14)}</span><a href="mailto:${esc(e)}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(maskOn()?maskVal(e):e)}</a>${maskOn()?'':cbtn(e)}</div>`).join(''):'<div class="val" style="color:var(--muted)">—</div>';
   const sheet=document.getElementById('sheet');
   sheet.innerHTML=`<div class="shead">
     <button class="xbtn" onclick="openFamily('${m.group_code}')" title="Back to ${esc(m.group_code)} group" aria-label="Back to group">${icon('back',18)}</button>
@@ -1018,8 +1063,8 @@ function openDetail(id){
       <div class="grid2" style="margin-top:14px">
         <div class="field"><label>Date of Birth</label><div class="val big vcopy">${m.dob?fmtDate(m.dob):'—'}${m.dob?cbtn(fmtDate(m.dob)):''}</div></div>
         <div class="field"><label>Age</label><div class="val big">${m.age!=null?m.age+' years':'—'}</div></div></div>
-      <div class="field"><label>Mobile</label><div class="val big vcopy">${esc(m.mobile||'—')}${m.mobile?cbtn(m.mobile):''}</div></div>
-      ${m.alt_mobile?`<div class="field"><label>Alternate</label><div class="val vcopy">${esc(m.alt_mobile)}${cbtn(m.alt_mobile)}</div></div>`:''}
+      <div class="field"><label>Mobile</label><div class="val big vcopy">${m.mobile?esc(showNum(m.mobile)):'—'}${(m.mobile&&!maskOn())?cbtn(m.mobile):''}</div></div>
+      ${m.alt_mobile?`<div class="field"><label>Alternate</label><div class="val vcopy">${esc(showNum(m.alt_mobile))}${maskOn()?'':cbtn(m.alt_mobile)}</div></div>`:''}
       <div class="field"><label>Email(s)</label>${emailHtml}</div>
       ${m.resi_address?`<div class="field"><div class="addr"><div class="lab">${icon('home',13)} Residence${m.pref_comm==='Residence'?' · preferred':''}<span style="margin-left:auto">${cbtn(m.resi_address+(m.resi_tel?' · '+m.resi_tel:''))}</span></div>${esc(m.resi_address)}${m.resi_tel?'<br>'+esc(m.resi_tel):''}</div></div>`:''}
       ${m.offi_address?`<div class="field"><div class="addr"><div class="lab">${icon('building',13)} Office${m.pref_comm==='Office'?' · preferred':''}<span style="margin-left:auto">${cbtn(m.offi_address+(m.offi_tel?' · '+m.offi_tel:''))}</span></div>${esc(m.offi_address)}${m.offi_tel?'<br>'+esc(m.offi_tel):''}</div></div>`:''}
@@ -1214,10 +1259,11 @@ async function loadAccess(){
   inviteName=null;
 }
 /* writes the access doc (admin-only) AND a public roster of allowed emails (readable by all, so a removed user is signed out instantly) */
-async function saveAccess(doc){ await fdb.doc('meta/access').set(doc); const map={}; (doc.users||[]).forEach(u=>{ if(u.name&&u.email) map[norm(u.name)]=u.email; }); try{ await fdb.doc('meta/roster').set({map,emails:(doc.emails||[]),ts:Date.now()}); }catch(e){} }
+async function saveAccess(doc){ await fdb.doc('meta/access').set(doc); const map={}; (doc.users||[]).forEach(u=>{ if(u.name&&u.email) map[norm(u.name)]=u.email; }); try{ let cur={}; try{ cur=(await fdb.doc('meta/roster').get()).data()||{}; }catch(e){} await fdb.doc('meta/roster').set({map,emails:(doc.emails||[]),ts:Date.now(),maskContacts:!!cur.maskContacts,forceLogoutAt:cur.forceLogoutAt||0}); }catch(e){} }
+function rerender(){ try{ if(typeof afterData==='function') afterData(); }catch(e){} }
 let _revoked=false;
 function accessRevoked(){ if(_revoked)return; _revoked=true; try{ fbAuth.signOut(); }catch(e){} }
-function updateAdminUI(){ document.querySelectorAll('[data-v="teams"]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; }
+function updateAdminUI(){ document.querySelectorAll('[data-v="teams"]').forEach(el=>el.style.display=isAdmin?'':'none'); document.querySelectorAll('[data-admin]').forEach(el=>el.style.display=isAdmin?'':'none'); const ib=document.getElementById('csImportBtn'); if(ib)ib.style.display=isAdmin?'':'none'; renderAlertBell(); }
 /* ===== Admin: users, invites ===== */
 function renderTeam(){
   const p=document.getElementById('teamsPanel'); if(!p)return;
@@ -1243,7 +1289,40 @@ function renderTeam(){
     <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that just opens the app with their name filled in — they then type the passkey you set. The link carries <b>no passkey</b>, so it's safe to share and always asks for the password. Tell each person their passkey separately.</div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="copyAppLink()">${icon('copy',15)} Copy universal login link (share in group)</button>
     <div class="hint" style="margin:6px 0 0">This link just opens the app's login screen — no name or passkey inside it. Each staff signs in with their own name + the passkey you set; only people on the list above can get in. Safe to share in a group chat.</div>
-    <button class="btn btn-danger btn-sm" style="margin-top:14px" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>`;
+    <button class="btn btn-danger btn-sm" style="margin-top:14px" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>
+
+    <h3 style="margin-top:26px"><span style="color:var(--brand2)">${icon('shield',16)}</span> Client data privacy</h3>
+    <div class="famitem" style="justify-content:space-between;cursor:default">
+      <div style="min-width:0"><b>Mask contact details for staff</b><div class="dupsub">Staff see only first-2 + last-2 of mobiles &amp; emails (e.g. 98••••63). Admins still see full.</div></div>
+      <button class="btn ${MASK?'btn-primary':'btn-ghost'} btn-sm" onclick="toggleMask()">${MASK?'On':'Off'}</button>
+    </div>
+    <div class="hint" style="margin:6px 0 0">Reduces what staff can read or copy on screen. This is a strong deterrent, not a hard lock — a determined technical user could still reach raw data. Paired with admin-only export, it covers the common leak paths.</div>
+
+    <h3 style="margin-top:26px"><span style="color:var(--brand2)">${icon('users',16)}</span> Who's signed in <span class="pill">${(PRESENCE||[]).length}</span></h3>
+    <div class="famlist" style="margin:6px 0 10px">${(PRESENCE||[]).slice().sort((a,b)=>(b.lastActive||0)-(a.lastActive||0)).map(pz=>`<div class="famitem" style="justify-content:space-between;cursor:default">
+      <div style="min-width:0"><b>${esc(pz.name||pz.email||'?')}</b><div class="dupsub">${esc(pz.device||'')} · active ${timeAgo(pz.lastActive||pz.loginAt||Date.now())}</div></div>
+      <span class="dupsub">${pz.loginAt?('in '+fmtDateTime(pz.loginAt)):''}</span>
+    </div>`).join('')||'<div class="dupsub" style="padding:4px 2px">No active sessions recorded yet.</div>'}</div>
+    <button class="btn btn-danger btn-sm" onclick="signEveryoneOut()">${icon('shield',14)} Sign everyone out (force re-login)</button>
+    <div class="hint" style="margin:6px 0 0">Signs out every device (staff and admins) except this one. Sessions also expire automatically after ${SESSION_TTL_H} hours. Use this the moment someone leaves.</div>`;
+}
+async function toggleMask(){
+  if(!isAdmin)return;
+  const nv=!MASK;
+  try{ const cur=(await fdb.doc('meta/roster').get()).data()||{}; await fdb.doc('meta/roster').set(Object.assign(cur,{maskContacts:nv})); }catch(e){ toast('Could not update: '+(e.code||e.message),'warn'); return; }
+  MASK=nv; rerender(); renderTeam();
+  logAct({action:'edit',name:'Contact masking '+(nv?'ON':'OFF'),detail:'Privacy mode '+(nv?'enabled':'disabled')}).catch(()=>{});
+  toast('Masking '+(nv?'on':'off'),'ok');
+}
+async function signEveryoneOut(){
+  if(!isAdmin)return;
+  const ok=await askConfirm({title:'Sign everyone out',msg:'Immediately sign out every device (staff and admins) except this one. Everyone must log in again with their passkey. Use this when offboarding someone.',danger:true,okLabel:'Sign everyone out'});
+  if(!ok)return;
+  const now=Date.now();
+  try{ const cur=(await fdb.doc('meta/roster').get()).data()||{}; await fdb.doc('meta/roster').set(Object.assign(cur,{forceLogoutAt:now})); }catch(e){ toast('Failed: '+(e.code||e.message),'warn'); return; }
+  myLoginAt=now+1000; try{ localStorage.setItem('msfps_login_at',''+myLoginAt); }catch(e){}
+  logAct({action:'edit',name:'Signed everyone out',detail:'Forced global re-login'}).catch(()=>{});
+  toast('Everyone signed out ✓','ok');
 }
 function renderSettings(){
   const p=document.getElementById('settingsPanel'); if(!p)return;
@@ -1355,6 +1434,7 @@ async function doLogin(){
   const btn=document.getElementById('authBtn'); btn.disabled=true; btn.textContent='Signing in…';
   try{
     const alias=await aliasForName(nm); loginName=nm;
+    try{ localStorage.setItem('msfps_login_at',''+Date.now()); }catch(e){} // fresh session clock for this sign-in
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     await fbAuth.signInWithEmailAndPassword(alias,pass);
   }catch(e){
@@ -1364,16 +1444,32 @@ async function doLogin(){
   }
 }
 async function onSignedIn(u){
+  const fresh=!!loginName; // true only right after a real sign-in, not on reload/auth-restore
   const raw=(u.email||'').split('@')[0].split('.')[0]; const cap=raw?raw[0].toUpperCase()+raw.slice(1):raw;
   let savedName=''; try{ savedName=localStorage.getItem('msfps_name')||''; }catch(e){}
   me={email:u.email,name:loginName||inviteName||savedName||((accessDoc.users||[]).find(x=>x.email===u.email)||{}).name||((TEAM.find(t=>t.email===u.email)||{}).name)||cap};
   try{ if(me.name) localStorage.setItem('msfps_name',me.name); }catch(e){}
   loginName=null;
+  // ----- session clock + auto-expiry (short sessions) -----
+  try{ myLoginAt=parseInt(localStorage.getItem('msfps_login_at')||'0',10)||0; }catch(e){}
+  if(!myLoginAt){ myLoginAt=Date.now(); try{ localStorage.setItem('msfps_login_at',''+myLoginAt); }catch(e){} }
+  if(SESSION_TTL_H>0 && (Date.now()-myLoginAt)>SESSION_TTL_H*3600000){ try{ localStorage.removeItem('msfps_login_at'); }catch(e){} signOutUser(); return; }
   hideAuthGate();
   const lo=document.getElementById('logoutWrap'); if(lo){lo.style.display='';lo.querySelector('span').textContent='Sign out ('+me.name+')';}
   await loadAccess();
   updateAdminUI();
+  if(fresh) logAct({action:'login',name:(me.name||'Someone')+' signed in',detail:devLabel()}).catch(()=>{});
+  startPresence();
   subscribeCloud();
+}
+const SESSION_TTL_H=12; // sign a device out automatically this many hours after login
+let _presTimer=null;
+async function startPresence(){
+  if(!CLOUD||!me) return;
+  const id=(me.email||'').replace(/[^a-z0-9]/gi,'_'); if(!id) return;
+  try{ await fdb.collection('presence').doc(id).set({id,name:me.name||'',email:me.email,device:devLabel(),loginAt:myLoginAt||Date.now(),lastActive:Date.now()}); }catch(e){}
+  if(_presTimer) clearInterval(_presTimer);
+  _presTimer=setInterval(()=>{ try{ fdb.collection('presence').doc(id).update({lastActive:Date.now()}); }catch(e){} }, 60000);
 }
 function subscribeCloud(){
   fdb.collection('members').onSnapshot(snap=>{
@@ -1393,11 +1489,18 @@ function subscribeCloud(){
     UNMAPPED={}; snap.docs.forEach(d=>{UNMAPPED[d.id]=d.data();});
     refreshUnmappedUI();
   }, err=>{});
-  // Live roster: if this user is removed from the approved list, sign them out instantly
+  // Live roster: mask flag, global sign-out, and instant removal of revoked staff
   fdb.doc('meta/roster').onSnapshot(snap=>{
+    const d=snap.exists?(snap.data()||{}):{}; _rflags=d;
+    const nm=!!d.maskContacts; if(nm!==MASK){ MASK=nm; rerender(); if(view==='teams')renderTeam(); }
+    if(d.forceLogoutAt && myLoginAt && myLoginAt<d.forceLogoutAt && me && me.email!=='monish@msfps.in'){ accessRevoked(); return; }
     if(!me || me.email==='monish@msfps.in') return;
-    if(snap.exists){ const em=(snap.data()||{}).emails||[]; if(!em.includes(me.email)) accessRevoked(); }
+    if(snap.exists){ const em=d.emails||[]; if(!em.includes(me.email)) accessRevoked(); }
   }, err=>{});
+  if(isAdmin){
+    fdb.collection('alerts').orderBy('ts','desc').limit(100).onSnapshot(snap=>{ ALERTS=snap.docs.map(d=>Object.assign({_id:d.id},d.data())); renderAlertBell(); if(_alertsOpen)renderAlertsSheet(); }, err=>{});
+    fdb.collection('presence').onSnapshot(snap=>{ PRESENCE=snap.docs.map(d=>d.data()); if(view==='teams')renderTeam(); }, err=>{});
+  }
 }
 async function cloudSave(m,isNew,detail){
   await fdb.collection('members').doc(String(m.membid)).set(JSON.parse(JSON.stringify(m)));
@@ -1431,7 +1534,13 @@ function updateCloudStatus(){
   const sp=document.getElementById('spText'); if(sp)sp.textContent=on?'Live — synced with your team':'Offline — will sync when back online';
   const spp=document.getElementById('spPending'); if(spp)spp.style.display='none';
 }
-async function signOutUser(){ try{ await fbAuth.signOut(); }catch(e){} location.reload(); }
+async function signOutUser(){
+  try{ if(_presTimer)clearInterval(_presTimer); }catch(e){}
+  try{ if(CLOUD&&me){ await logAct({action:'logout',name:(me.name||'Someone')+' signed out',detail:devLabel()}); const id=(me.email||'').replace(/[^a-z0-9]/gi,'_'); if(id) await fdb.collection('presence').doc(id).delete(); } }catch(e){}
+  try{ await fbAuth.signOut(); }catch(e){}
+  try{ localStorage.removeItem('msfps_login_at'); }catch(e){}
+  location.reload();
+}
 async function signOutConfirm(){ const who=(me&&me.name)?(' ('+me.name+')'):''; const ok=await askConfirm({title:'Sign out'+who,msg:'Sign out on this device? You’ll need your passkey to sign back in.',okLabel:'Sign out'}); if(ok) signOutUser(); }
 function showAuthGate(mode){
   const g=document.getElementById('authgate'); if(!g)return; g.style.display='flex';
@@ -1819,7 +1928,7 @@ function csRenderDash(){
   html+=`</div>`;
   const el=document.getElementById('csDash');if(el)el.innerHTML=html;
 }
-function csCopyNumbers(){const nums=csLast.map(m=>firstPhone(m.mobile)).filter(Boolean);if(!nums.length){toast('No mobile numbers in this list','warn');return;}copyText(nums.join(', '));toast('Copied '+nums.length+' numbers','ok');}
+function csCopyNumbers(){if(!isAdmin){toast('Only admins can export','warn');return;}const nums=csLast.map(m=>firstPhone(m.mobile)).filter(Boolean);if(!nums.length){toast('No mobile numbers in this list','warn');return;}copyText(nums.join(', '));toast('Copied '+nums.length+' numbers','ok');}
 function csEditProducts(id){
   if(!isAdmin)return;const m=MEMBERS.find(x=>String(x.membid)===String(id));if(!m)return;
   const h=holdOf(m)||{products:{},status:'active'};const p=h.products||{};
@@ -1925,6 +2034,7 @@ async function styledExport(opts){
   toast('Exported to Excel ✓','ok');
 }
 async function exportExcel(subset){
+  if(!isAdmin){toast('Only admins can export','warn');return;}
   const src=subset?(lastList||[]):sortName(MEMBERS);
   const headers=[{label:'Member ID',width:12},{label:'Group',width:9},{label:'Group Name',width:22},{label:'Name',width:24},{label:'DOB',width:12},{label:'Age',width:6},{label:'Mobile',width:16},{label:'Alternate',width:14},{label:'Emails',width:30},{label:'Residence',width:36},{label:'Pin',width:8},{label:'Office',width:28},{label:'Preferred',width:12}];
   const rows=src.map(m=>[m.membid,m.group_code,m.group_name,m.name,m.dob?fmtDate(m.dob):'',(m.age==null?'':m.age),m.mobile||'',m.alt_mobile||'',(m.emails||[]).join(' ; '),m.resi_address||'',m.resi_pin||'',m.offi_address||'',m.pref_comm||'']);
@@ -1932,6 +2042,7 @@ async function exportExcel(subset){
   logAct({action:'export',name:'Members'+(subset?' (filtered)':''),detail:rows.length+' members to Excel'}).catch(()=>{});
 }
 async function exportGroups(){
+  if(!isAdmin){toast('Only admins can export','warn');return;}
   const fams=familyList().sort((a,b)=>a.name.localeCompare(b.name));
   const summary=fams.map(f=>[f.code,f.name,f.members.length]);
   const members=[];fams.forEach(f=>{sortName(f.members).forEach(m=>members.push([f.code,f.name,m.name,(m.age==null?'':m.age),m.mobile||'',(m.emails||[]).join(' ; '),m.resi_pin||'']));});
@@ -1942,6 +2053,7 @@ async function exportGroups(){
   logAct({action:'export',name:'Groups',detail:fams.length+' groups to Excel'}).catch(()=>{});
 }
 async function exportCross(){
+  if(!isAdmin){toast('Only admins can export','warn');return;}
   const list=csLast||[];if(!list.length){toast('Nothing to export — adjust the filter first','warn');return;}
   const aprod=activeProducts();
   const headers=[{label:'Group',width:9},{label:'Name',width:24},{label:'Status',width:10},{label:'Mobile',width:16},{label:'Email',width:28}].concat(aprod.map(p=>({label:p.label,width:13}))).concat([{label:'Gaps (to pitch)',width:42}]);
