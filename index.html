@@ -344,6 +344,14 @@
   .lchev{color:#b9c6da;flex-shrink:0;display:flex}
   @media(max-width:680px){.lcell.area{display:none}.lcell{width:118px}}
   @media(max-width:480px){.lcell.mono{display:none}.lchev{display:none}}
+  /* Teams member rows: stack name over actions on narrow screens so nothing (e.g. Remove) is clipped */
+  .teamacts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  @media(max-width:560px){
+    .teamrow{flex-direction:column;align-items:stretch;gap:10px}
+    .teamrow>div{min-width:0;width:100%}
+    .teamacts{justify-content:flex-start}
+    .teamacts .btn{flex:1 1 42%;justify-content:center}
+  }
   /* ===== Cross-sell tab ===== */
   .csbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 2px}
   .cslbl{font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;min-width:60px}
@@ -622,7 +630,7 @@ async function raiseAlert(sev,last10,day){
 }
 function alertCount(){ return (ALERTS||[]).filter(a=>!a.ack).length; }
 function renderAlertBell(){ const b=document.getElementById('alertBell'); if(!b)return; b.style.display=isAdmin?'inline-flex':'none'; const n=alertCount(); const dot=document.getElementById('alertDot'); if(dot){ dot.style.display=n?'flex':'none'; dot.textContent=n>9?'9+':String(n); } }
-function openAlerts(){ _alertsOpen=true; renderAlertsSheet(); document.getElementById('overlay').classList.add('show'); }
+function openAlerts(){ _alertsOpen=true; renderAlertsSheet(); openOverlay(); }
 function renderAlertsSheet(){
   const sheet=document.getElementById('sheet'); if(!sheet)return;
   const list=(ALERTS||[]).slice().sort((a,b)=>b.ts-a.ts);
@@ -1004,7 +1012,7 @@ function openFamily(code){
     </div>
     <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button>
       <button class="btn btn-primary" onclick="openAdd('${code}')">${icon('plus',16)} Add member to this group</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 
 /* ---------- ACTIVITY ---------- */
@@ -1073,9 +1081,13 @@ function openDetail(id){
       ${fam.length?`<div class="field"><label>Members in ${esc(m.group_code)} (${fam.length})</label><div class="famlist">${fam.map(f=>`<div class="famitem" onclick="openDetail('${f.membid}')"><span class="fnm">${esc(f.name)}</span><span class="fage">${f.age!=null?f.age+' yrs':''}</span></div>`).join('')}</div></div>`:''}
     </div>
     <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button><button class="btn btn-primary" onclick="openEdit('${m.membid}')">${icon('edit',16)} Edit</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
-function closeSheet(){document.getElementById('overlay').classList.remove('show');currentId=null;}
+let _ovState=false;
+function openOverlay(){ const o=document.getElementById('overlay'); if(o)o.classList.add('show'); if(!_ovState){ _ovState=true; try{ history.pushState({msfpsSheet:1},''); }catch(e){} } }
+function closeSheet(){ const o=document.getElementById('overlay'); if(o)o.classList.remove('show'); currentId=null; if(_ovState){ _ovState=false; try{ if(history.state&&history.state.msfpsSheet) history.back(); }catch(e){} } }
+function onPopState(){ const o=document.getElementById('overlay'); if(o&&o.classList.contains('show')){ _ovState=false; _alertsOpen=false; o.classList.remove('show'); currentId=null; } }
+window.addEventListener('popstate',onPopState);
 
 /* ---------- add / edit ---------- */
 function openEdit(id,presetCode){
@@ -1105,7 +1117,7 @@ function openEdit(id,presetCode){
     </div>
     <div class="sfoot"><button class="btn btn-ghost" onclick="${isNew?'closeSheet()':`openDetail('${id}')`}">Cancel</button>
       <button class="btn btn-primary" onclick="saveMember(${isNew?'null':`'${id}'`})">${icon('check',16)} Save</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
   if(isNew&&presetCode)selectGroup(presetCode);
 }
 function openAdd(code){openEdit(null,code);}
@@ -1271,46 +1283,22 @@ function renderTeam(){
   const users=(accessDoc.users||[]), admins=(accessDoc.admins||[]);
   p.innerHTML=`
     <h3><span style="color:var(--brand2)">${icon('users',16)}</span> Team members <span class="pill">${users.length}</span></h3>
-    <div class="famlist" style="margin:6px 0 20px">${users.map(u=>`<div class="famitem" style="justify-content:space-between;cursor:default">
+    <div class="famlist" style="margin:6px 0 14px">${users.map(u=>`<div class="famitem teamrow" style="justify-content:space-between;cursor:default">
       <div style="min-width:0"><b>${esc(u.name||u.email)}</b>${admins.includes(u.email)?' <span class="smartchip">admin</span>':''}<div class="dupsub">${esc(u.email)}</div></div>
-      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+      <div class="teamacts" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
         <button class="btn btn-ghost btn-sm" onclick="adminResetKey('${esc(u.email)}')" title="Set a new passkey">${icon('shield',14)} Reset passkey</button>
         ${u.email!==(me&&me.email)?`<button class="btn btn-ghost btn-sm" onclick="copyInvite('${esc(u.email)}')">${icon('copy',14)} Invite</button>`:''}
         ${u.email!=='monish@msfps.in'?`<button class="btn btn-ghost btn-sm" onclick="adminSetRole('${esc(u.email)}',${admins.includes(u.email)?'false':'true'})">${admins.includes(u.email)?'Demote':'Make admin'}</button>`:''}
         ${u.email!=='monish@msfps.in'?`<button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.email)}')">Remove</button>`:''}
       </div>
     </div>`).join('')}</div>
-    <h3><span style="color:var(--brand2)">${icon('plus',16)}</span> Add a team member</h3>
-    <div class="field"><label>Name (this is their login ID)</label><input id="su_name" class="authinput" placeholder="e.g. Riya" autocomplete="off"></div>
-    <div class="field"><label>Passkey (min 6 characters)</label><input id="su_pass" class="authinput" placeholder="Set their passkey"></div>
-    <div class="autherr" id="su_err" style="display:none"></div>
-    <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
-    <div id="su_invite" style="margin-top:14px"></div>
-    <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that just opens the app with their name filled in — they then type the passkey you set. The link carries <b>no passkey</b>, so it's safe to share and always asks for the password. Tell each person their passkey separately.</div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="copyAppLink()">${icon('copy',15)} Copy universal login link (share in group)</button>
-    <div class="hint" style="margin:6px 0 0">This link just opens the app's login screen — no name or passkey inside it. Each staff signs in with their own name + the passkey you set; only people on the list above can get in. Safe to share in a group chat.</div>
-    <button class="btn btn-danger btn-sm" style="margin-top:14px" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>
-
-    <h3 style="margin-top:26px"><span style="color:var(--brand2)">${icon('shield',16)}</span> Client data privacy</h3>
-    <div class="famitem" style="justify-content:space-between;cursor:default">
-      <div style="min-width:0"><b>Mask contact details for staff</b><div class="dupsub">Staff see only first-2 + last-2 of mobiles &amp; emails (e.g. 98••••63). Admins still see full.</div></div>
-      <button class="btn ${MASK?'btn-primary':'btn-ghost'} btn-sm" onclick="toggleMask()">${MASK?'On':'Off'}</button>
-    </div>
-    <div class="hint" style="margin:6px 0 0">Reduces what staff can read or copy on screen. This is a strong deterrent, not a hard lock — a determined technical user could still reach raw data. Paired with admin-only export, it covers the common leak paths.</div>
-
-    <h3 style="margin-top:26px"><span style="color:var(--brand2)">${icon('users',16)}</span> Who's signed in <span class="pill">${(PRESENCE||[]).length}</span></h3>
-    <div class="famlist" style="margin:6px 0 10px">${(PRESENCE||[]).slice().sort((a,b)=>(b.lastActive||0)-(a.lastActive||0)).map(pz=>`<div class="famitem" style="justify-content:space-between;cursor:default">
-      <div style="min-width:0"><b>${esc(pz.name||pz.email||'?')}</b><div class="dupsub">${esc(pz.device||'')} · active ${timeAgo(pz.lastActive||pz.loginAt||Date.now())}</div></div>
-      <span class="dupsub">${pz.loginAt?('in '+fmtDateTime(pz.loginAt)):''}</span>
-    </div>`).join('')||'<div class="dupsub" style="padding:4px 2px">No active sessions recorded yet.</div>'}</div>
-    <button class="btn btn-danger btn-sm" onclick="signEveryoneOut()">${icon('shield',14)} Sign everyone out (force re-login)</button>
-    <div class="hint" style="margin:6px 0 0">Signs out every device (staff and admins) except this one. Sessions also expire automatically after ${SESSION_TTL_H} hours. Use this the moment someone leaves.</div>`;
+    <div class="hint">Add a member, invite links, data privacy and signed-in sessions are all in <b>Settings</b>.</div>`;
 }
 async function toggleMask(){
   if(!isAdmin)return;
   const nv=!MASK;
   try{ const cur=(await fdb.doc('meta/roster').get()).data()||{}; await fdb.doc('meta/roster').set(Object.assign(cur,{maskContacts:nv})); }catch(e){ toast('Could not update: '+(e.code||e.message),'warn'); return; }
-  MASK=nv; rerender(); renderTeam();
+  MASK=nv; rerender(); renderSettings();
   logAct({action:'edit',name:'Contact masking '+(nv?'ON':'OFF'),detail:'Privacy mode '+(nv?'enabled':'disabled')}).catch(()=>{});
   toast('Masking '+(nv?'on':'off'),'ok');
 }
@@ -1329,7 +1317,36 @@ function renderSettings(){
   p.innerHTML=`
     <h3><span style="color:var(--brand2)">${icon('download',16)}</span> Update directory from CRM</h3>
     <div class="hint" style="margin:4px 0 12px">Refresh the whole Members &amp; Groups directory from your monthly WealthMagic customer export. A backup downloads first, you can review a preview before anything changes, and cross-sell stays linked. Anyone on the team can run this.</div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openDirSync()">${icon('download',16)} Update directory from CRM</button>`;
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openDirSync()">${icon('download',16)} Update directory from CRM</button>
+    ${isAdmin?`
+    <h3 style="margin-top:28px"><span style="color:var(--brand2)">${icon('plus',16)}</span> Add a team member</h3>
+    <div class="field"><label>Name (this is their login ID)</label><input id="su_name" class="authinput" placeholder="e.g. Riya" autocomplete="off"></div>
+    <div class="field"><label>Passkey (min 6 characters)</label><input id="su_pass" class="authinput" placeholder="Set their passkey"></div>
+    <div class="autherr" id="su_err" style="display:none"></div>
+    <button class="btn btn-primary" id="suAddBtn" onclick="adminAddUser()" style="margin-top:4px">Add member &amp; make invite</button>
+    <div id="su_invite" style="margin-top:14px"></div>
+    <div class="hint" style="margin-top:14px">Every member has an <b>Invite</b> link that just opens the app with their name filled in — they then type the passkey you set. The link carries <b>no passkey</b>, so it's safe to share and always asks for the password. Tell each person their passkey separately.</div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="copyAppLink()">${icon('copy',15)} Copy universal login link (share in group)</button>
+    <div class="hint" style="margin:6px 0 0">This link just opens the app's login screen — no name or passkey inside it. Each staff signs in with their own name + the passkey you set; only people on the team list can get in. Safe to share in a group chat.</div>
+
+    <h3 style="margin-top:28px"><span style="color:var(--brand2)">${icon('shield',16)}</span> Client data privacy</h3>
+    <div class="famitem" style="justify-content:space-between;cursor:default">
+      <div style="min-width:0"><b>Mask contact details for staff</b><div class="dupsub">Staff see only first-2 + last-2 of mobiles &amp; emails (e.g. 98••••63). Admins still see full.</div></div>
+      <button class="btn ${MASK?'btn-primary':'btn-ghost'} btn-sm" onclick="toggleMask()">${MASK?'On':'Off'}</button>
+    </div>
+    <div class="hint" style="margin:6px 0 0">Reduces what staff can read or copy on screen. This is a strong deterrent, not a hard lock — a determined technical user could still reach raw data. Paired with admin-only export, it covers the common leak paths.</div>
+
+    <h3 style="margin-top:28px"><span style="color:var(--brand2)">${icon('users',16)}</span> Who's signed in <span class="pill">${(PRESENCE||[]).length}</span></h3>
+    <div class="famlist" style="margin:6px 0 10px">${(PRESENCE||[]).slice().sort((a,b)=>(b.lastActive||0)-(a.lastActive||0)).map(pz=>`<div class="famitem" style="justify-content:space-between;cursor:default">
+      <div style="min-width:0"><b>${esc(pz.name||pz.email||'?')}</b><div class="dupsub">${esc(pz.device||'')} · active ${timeAgo(pz.lastActive||pz.loginAt||Date.now())}</div></div>
+      <span class="dupsub">${pz.loginAt?('in '+fmtDateTime(pz.loginAt)):''}</span>
+    </div>`).join('')||'<div class="dupsub" style="padding:4px 2px">No active sessions recorded yet.</div>'}</div>
+    <button class="btn btn-danger btn-sm" onclick="signEveryoneOut()">${icon('shield',14)} Sign everyone out (force re-login)</button>
+    <div class="hint" style="margin:6px 0 0">Signs out every device (staff and admins) except this one. Sessions also expire automatically after ${SESSION_TTL_H} hours. Use this the moment someone leaves.</div>
+
+    <h3 style="margin-top:28px"><span style="color:#c0392b">${icon('shield',16)}</span> Danger zone</h3>
+    <button class="btn btn-danger btn-sm" onclick="resetToMonishOnly()">${icon('shield',14)} Remove all staff (keep only Monish)</button>
+    `:''}`;
 }
 function suDeriveEmail(){ const n=(document.getElementById('su_name').value||'').trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g,''); const e=document.getElementById('su_email'); if(e&&!e.dataset.touched)e.value=n?n+'@msfps.in':''; }
 async function adminAddUser(){
@@ -1383,7 +1400,7 @@ function adminResetKey(email){
     <div class="autherr" id="rk_err" style="display:none"></div>
   </div>
   <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" id="rk_go" onclick="doResetKey('${esc(email)}')">${icon('check',16)} Set new passkey</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 async function doResetKey(email){
   const err=m=>{const e=document.getElementById('rk_err');if(e){e.textContent=m;e.style.display='block';}};
@@ -1492,14 +1509,14 @@ function subscribeCloud(){
   // Live roster: mask flag, global sign-out, and instant removal of revoked staff
   fdb.doc('meta/roster').onSnapshot(snap=>{
     const d=snap.exists?(snap.data()||{}):{}; _rflags=d;
-    const nm=!!d.maskContacts; if(nm!==MASK){ MASK=nm; rerender(); if(view==='teams')renderTeam(); }
+    const nm=!!d.maskContacts; if(nm!==MASK){ MASK=nm; rerender(); if(view==='settings')renderSettings(); }
     if(d.forceLogoutAt && myLoginAt && myLoginAt<d.forceLogoutAt && me && me.email!=='monish@msfps.in'){ accessRevoked(); return; }
     if(!me || me.email==='monish@msfps.in') return;
     if(snap.exists){ const em=d.emails||[]; if(!em.includes(me.email)) accessRevoked(); }
   }, err=>{});
   if(isAdmin){
     fdb.collection('alerts').orderBy('ts','desc').limit(100).onSnapshot(snap=>{ ALERTS=snap.docs.map(d=>Object.assign({_id:d.id},d.data())); renderAlertBell(); if(_alertsOpen)renderAlertsSheet(); }, err=>{});
-    fdb.collection('presence').onSnapshot(snap=>{ PRESENCE=snap.docs.map(d=>d.data()); if(view==='teams')renderTeam(); }, err=>{});
+    fdb.collection('presence').onSnapshot(snap=>{ PRESENCE=snap.docs.map(d=>d.data()); if(view==='settings')renderSettings(); }, err=>{});
   }
 }
 async function cloudSave(m,isNew,detail){
@@ -1657,7 +1674,7 @@ function openSplit(code){
         <div class="hint" style="margin-top:7px">The new head is ticked automatically. Everyone you tick moves to the new group; the rest stay in ${esc(code)}.</div></div>
     </div>
     <div class="sfoot"><button class="btn btn-ghost" onclick="openFamily('${code}')">Cancel</button><button class="btn btn-primary" onclick="doSplit('${code}')">Split group</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
   splitPreview(code);
 }
 function splitPreview(code){
@@ -1698,7 +1715,7 @@ function openMove(id){
         <div class="hint">This person becomes the head of a brand-new group.</div></div>
     </div>
     <div class="sfoot"><button class="btn btn-ghost" onclick="openDetail('${id}')">Cancel</button><button class="btn btn-primary" onclick="doMove('${id}')">Move</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 function setMoveMode(mode){ moveMode=mode; document.getElementById('mvExisting').style.display=mode==='existing'?'block':'none'; document.getElementById('mvNew').style.display=mode==='new'?'block':'none'; document.querySelectorAll('#mvSeg .segbtn').forEach(b=>b.classList.toggle('active',b.dataset.mm===mode)); if(mode==='new')updateNewCode(); }
 function updateNewCode(){ const nm=(document.getElementById('mvName').value||'').trim(); const el=document.getElementById('mvNewCode'); if(el)el.value=genGroupCode(nm)+'  ·  '+nm; }
@@ -1733,7 +1750,7 @@ function openHistory(id){
     <button class="xbtn" onclick="openDetail('${id}')">×</button></div>
     <div class="sbody">${h.length?h.map(e=>`<div class="histitem"><div class="histdot"></div><div style="flex:1"><div class="histact">${esc(histLabel(e.action))}</div>${e.detail?`<div class="histdet">${esc(e.detail)}</div>`:''}<div class="histmeta">by ${esc(e.by||'—')} · ${new Date(e.ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join(''):`<div class="empty"><div class="big" style="color:var(--muted)">${icon('clock',34)}</div>No changes recorded yet.<br>Renames, moves and splits from now on will show here — with who did each.</div>`}</div>
     <div class="sfoot"><button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="openDetail('${id}')">Back</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 
 /* ---------- bulk ---------- */
@@ -1786,7 +1803,7 @@ function openUnmapped(){
     <div class="results" id="umGrid"></div>
   </div>
   <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
   renderUnmappedInto('umGrid','');
 }
 function convertUnmapped(id){
@@ -1939,7 +1956,7 @@ function csEditProducts(id){
     <div class="field"><label>Products held — tap to toggle</label><div class="csbar" id="cp_pills">${PRODUCTS.map(pr=>`<button type="button" class="cspill ${p[pr.k]?'on-has':''}" data-k="${pr.k}" onclick="this.classList.toggle('on-has')">${esc(pr.label)}</button>`).join('')}</div></div>
   </div>
   <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="csSaveProducts('${id}')">${icon('check',16)} Save</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 async function csSaveProducts(id){
   const m=MEMBERS.find(x=>String(x.membid)===String(id));if(!m)return;
@@ -1964,7 +1981,7 @@ function openHoldingsImport(){
     <div id="imp_out" style="margin-top:10px"></div>
   </div>
   <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button><button class="btn btn-primary" id="imp_go" onclick="runHoldingsImport()">${icon('check',16)} Import</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 async function parseHoldFile(file,status){
   const buf=await file.arrayBuffer();
@@ -2143,7 +2160,7 @@ function openDirSync(){
    <div class="sfoot"><button class="btn btn-ghost" onclick="closeSheet()">Close</button>
      <button class="btn btn-ghost btn-sm" id="wm_prev" onclick="runDirSyncPreview()">${icon('eye',16)} Preview (optional)</button>
      <button class="btn btn-primary" id="wm_go" onclick="confirmDirSync()">${icon('check',16)} Backup &amp; update now</button></div>`;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
   try{ actAll().then(a=>{ const last=(a||[]).filter(e=>e&&(e.action==='crmsync'||(e.action==='import'&&/synced from CRM|updated from CRM/i.test(e.name||'')))).sort((x,y)=>y.ts-x.ts)[0]; const el=document.getElementById('wm_last'); if(el) el.innerHTML = last ? ('Last updated from CRM: <b>'+esc(fmtDateTime(last.ts))+'</b>'+(last.detail?'<br><span style="color:var(--muted)">'+esc(last.detail)+'</span>':'')) : 'No CRM update has been run yet — this will be your first.'; }).catch(()=>{const el=document.getElementById('wm_last');if(el)el.style.display='none';}); }catch(e){const el=document.getElementById('wm_last');if(el)el.style.display='none';}
 }
 async function runDirSyncPreview(){
